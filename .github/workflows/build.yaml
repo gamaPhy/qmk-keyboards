@@ -18,11 +18,11 @@ jobs:
     - name: Install QMK
       run: python3 -m pip install qmk
     
-    - name: Build
+    - name: Build keyboards
       run: ./in_qmk.sh qmk mass-compile -f keyboard_folder='gamaphy/*' -km via -j 0
 
-    - run: ls qmk_firmware
-    
+    - run: ls qmk_firmware/.build
+
     - uses: marvinpinto/action-automatic-releases@latest
       if: always()
       with:
