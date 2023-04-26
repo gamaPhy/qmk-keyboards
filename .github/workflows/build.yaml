@@ -20,7 +20,8 @@ jobs:
     - name: Build keyboards
       run: ./in_qmk.sh qmk mass-compile -f keyboard_folder='gamaphy/*' -km via -j 0
 
-    - uses: marvinpinto/action-automatic-releases@latest
+    - name: Upload binaries to release
+      uses: marvinpinto/action-automatic-releases@latest
       if: always()
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
