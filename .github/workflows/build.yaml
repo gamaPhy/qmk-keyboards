@@ -15,11 +15,8 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install QMK
-      run: python3 -m pip install qmk
-
     - name: Setup QMK
-      run: yes | ./in_qmk qmk setup
+      run: ./qmk_firmware/blob/master/util/qmk_install.sh
     
     - name: Build keyboards
       run: ./in_qmk.sh qmk mass-compile -f keyboard_folder='gamaphy/*' -km via -j 0
