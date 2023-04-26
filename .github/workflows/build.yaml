@@ -3,7 +3,10 @@ name: Build all gamaPhy keyboards
 on:
   push:
     branches:
-      - "main"
+      - main
+    paths-ignore:
+      - "**.md"
+
 
 jobs:
   build:
