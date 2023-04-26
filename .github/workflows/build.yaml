@@ -17,6 +17,9 @@ jobs:
 
     - name: Install QMK
       run: python3 -m pip install qmk
+
+    - name: Setup QMK
+      run: yes | qmk setup
     
     - name: Build keyboards
       run: ./in_qmk.sh qmk mass-compile -f keyboard_folder='gamaphy/*' -km via -j 0
