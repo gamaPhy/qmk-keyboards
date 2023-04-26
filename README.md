@@ -4,7 +4,7 @@ This repository contains the code and binaries for our keypads/keyboards based o
 
 ## Latest Firmware
 
-The most recent firmware for every keypad/keyboard is in the [latest release](https://github.com/gamaPhy/qmk-keyboards/releases/latest).
+The most recent firmware for every keypad/keyboard is in the [latest release](https://github.com/gamaPhy/qmk-keyboards/releases/latest) of this repository.
 
 ## Development Usage
 
