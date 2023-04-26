@@ -21,7 +21,7 @@ jobs:
     - name: Build keyboards
       run: ./in_qmk.sh qmk mass-compile -f keyboard_folder='gamaphy/*' -km via -j 0
 
-    - run: ls qmk_firmware/.build
+    - run: cat qmk_firmware/.build/failed*
 
     - uses: marvinpinto/action-automatic-releases@latest
       if: always()
