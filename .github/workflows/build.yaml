@@ -13,7 +13,6 @@ jobs:
     - name: Checkout source code
       uses: actions/checkout@v3
       with:
-        path: qmk-keyboards
         submodules: recursive
 
     - name: Install QMK
@@ -22,6 +21,8 @@ jobs:
     - name: Build
       run: ./in_qmk.sh qmk mass-compile -f keyboard_folder='gamaphy/*' -km via -j 0
 
+    - run: ls qmk_firmware
+    
     - uses: marvinpinto/action-automatic-releases@latest
       if: always()
       with:
