@@ -16,7 +16,7 @@ jobs:
         submodules: recursive
 
     - name: Setup QMK
-      run: ./qmk_firmware/blob/master/util/qmk_install.sh
+      run: ./qmk_firmware/util/qmk_install.sh
     
     - name: Build keyboards
       run: ./in_qmk.sh qmk mass-compile -f keyboard_folder='gamaphy/*' -km via -j 0
