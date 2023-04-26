@@ -17,14 +17,12 @@ jobs:
 
     - name: Install QMK
       run: python3 -m pip install qmk
-      
+
     - name: Setup QMK
       run: ./qmk_firmware/util/qmk_install.sh
     
     - name: Build keyboards
       run: ./in_qmk.sh qmk mass-compile -f keyboard_folder='gamaphy/*' -km via -j 0
-
-    - run: cat qmk_firmware/.build/failed*
 
     - uses: marvinpinto/action-automatic-releases@latest
       if: always()
@@ -34,6 +32,4 @@ jobs:
         prerelease: false
         title: "Latest Firmware"
         files: |
-          qmk_firmware/*.hex
           qmk_firmware/*.bin
-          qmk_firmware/*.uf2
