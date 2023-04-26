@@ -1,0 +1,32 @@
+name: Build all gamaPhy keyboards
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container: qmkfm/qmk_cli
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    
+    - name: Build keyboards
+      run: ./in_qmk.sh qmk mass-compile -f keyboard_folder='gamaphy/*' -km via -j 0
+
+    - name: Upload binaries to release
+      uses: marvinpinto/action-automatic-releases@latest
+      if: always()
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: false
+        title: "Latest Firmware"
+        files: |
+          qmk_firmware/*.bin
