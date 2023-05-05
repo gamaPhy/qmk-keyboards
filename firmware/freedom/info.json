@@ -3,17 +3,17 @@
     "maintainer": "gamaPhy",
     "build": {
         "debounce_type": "sym_eager_pk",
-        "firmware_format": "bin",
+        "firmware_format": "uf2",
         "lto": true,
     },
     "features": {
         "rgblight": true
     },
     "rgblight": {
-        "pin": "C9",
-        "led_count": 1
+        "pin": "GP12",
+        "led_count": 10
     },
-    "processor": "STM32F401",
-    "bootloader": "stm32-dfu",
-    "board": "GENERIC_STM32_F401XC"
+    "processor": "RP2040",
+    "bootloader": "rp2040",
+    "board": "GENERIC_RP_RP2040"
 }

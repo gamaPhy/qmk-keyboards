@@ -9,8 +9,8 @@
     "matrix_pins": {
         "custom_lite": true,
         "direct": [
-            ["GP26", "GP27", "GP28"],
-            ["GP17", "GP18", "GP19"]
+            ["A6", "C4", "B1"],
+            ["A1", "A2", "A3"]
         ]
     },
     "layouts": {
