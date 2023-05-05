@@ -8,6 +8,10 @@ The most recent firmware for every keypad/keyboard is in the [latest release](ht
 
 ## Development Usage
 
+### Getting Started
+`git clone https://github.com/gamaPhy/qmk-keyboards.git --recurse-submodules`
+
+### Workflow
 The `in_qmk.sh` script takes any command as an argument, and then runs that command in a QMK environment that has access to the keyboards in `firmware/`. These keyboards be inside the `gamaphy` directory in the QMK environment. So to build firmware for Freedom (3k) that suports VIA, you could run:
 
     ./in_qmk.sh qmk compile -kb gamaphy/freedom/3k -km via
