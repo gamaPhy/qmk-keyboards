@@ -19,3 +19,10 @@
 // #define WS2812_PWM_PAL_MODE 2
 // #define WS2812_DMA_STREAM STM32_DMA1_STREAM2
 // #define WS2812_DMA_CHANNEL 5
+
+// #define WS2812_TIMING 1250
+// #define WS2812_T0H 400 
+// #define WS2812_T1H 800
+// #define WS2812_T0L 2050
+// #define WS2812_T1L 1650
+// #define WS2812_RES_US 100
