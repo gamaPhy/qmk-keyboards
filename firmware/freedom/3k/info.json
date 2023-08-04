@@ -3,8 +3,8 @@
     "url": "",
     "usb": {
         "device_version": "0.0.1",
-        "vid": "0xFFAA",
-        "pid": "0x3331"
+        "vid": "0x1209",
+        "pid": "0x2B00"
     },
     "matrix_pins": {
         "custom_lite": true,
