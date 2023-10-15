@@ -24,12 +24,23 @@ typedef struct {
     uint16_t max;
 } sensor_bounds_t;
 
+// Parameters of sensor scaling equation:
+// y(x) = (a/(x+b)^3) + base_value
+// where `base_value` is the value output from a HE sensor with no switches placed on the PCB.
+typedef struct {
+    uint32_t a;
+    float_t b;
+    uint32_t base_value;
+} sensor_scaling_params_t;
+
 typedef struct {
     bool rapid_trigger;
     uint8_t actuation_point_mm;
     uint8_t release_point_mm;
     uint8_t rapid_trigger_sensitivity_mm;
     sensor_bounds_t matrix_sensor_bounds[MATRIX_ROWS][MATRIX_COLS];
+    sensor_scaling_params_t matrix_sensor_scaling_params[MATRIX_ROWS][MATRIX_COLS];
+
 } kb_config_t;
 
 extern kb_config_t kb_config;
