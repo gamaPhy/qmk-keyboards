@@ -26,5 +26,5 @@ It is suggested to use the `qmk` commands instead of `make` commands, since inte
 
 ### Sensor scaling and calibration
 
-The output of a HE(Hall Effect) sensor, `sX_out` (where `X` is the sensor number), is an analog voltage value that is read by the ADC. The calibration and scaling process maps each value of `sX_out` to the distance that the switch `X` is being pressed. Each sensor has its own lookup table, which is stored as an array in static memory. All the lookup tables are loaded into RAM when the board boots up.
+The output of a HE(Hall Effect) sensor, `sX_out` (where `X` is the sensor number), is an analog voltage value that is read by the ADC. The calibration and scaling process maps each value of `sX_out` to the distance that the switch `X` is being pressed. This lookup table is stored as an array in static memory, and is loaded into RAM when the board boots up.
 
