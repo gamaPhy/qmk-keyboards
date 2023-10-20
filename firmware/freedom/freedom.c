@@ -54,7 +54,6 @@ void compute_sensor_scaling_params(void){
 }
 
 void create_lookup_table(void) {
-    
 }
 
 
@@ -84,10 +83,10 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
             }
         } else {
             // runs once after calibration button is released
-            eeconfig_update_kb_datablock(&kb_config);
             calibrating_sensors = false;
             compute_sensor_scaling_params();
             create_lookup_table();
+            eeconfig_update_kb_datablock(&kb_config);
         }
         return false;
     case KC_TOGGLE_RAPID_TRIGGER:
