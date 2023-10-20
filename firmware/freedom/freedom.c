@@ -1,5 +1,8 @@
 // Copyright 2023 gamaPhy (https://gamaphy.com/)
 // SPDX-License-Identifier: GPL-3.0-or-later
+
+#include <math.h>
+
 #include "freedom.h"
 
 bool calibrating_sensors = false;
@@ -18,15 +21,42 @@ void eeconfig_init_kb(void) {
             if (pin_scan_modes[row][col] == ANALOG) {
                 kb_config.matrix_sensor_bounds[row][col].min = 2200;
                 kb_config.matrix_sensor_bounds[row][col].max = 3000;
+                kb_config.matrix_scaling_params[row][col].a = 0;
+                kb_config.matrix_scaling_params[row][col].b = 0;
+                kb_config.matrix_scaling_params[row][col].b_decimal = 0;
+                kb_config.matrix_scaling_params[row][col].base_value = 0;
             }
         }
     }
     eeconfig_update_kb_datablock(&kb_config);
 }
 
+#define RATIO(min, max) (float)min/(float)max
+#define H_MAX (float)4.1
+#define B_PARAM(sensor_min, sensor_max) (float)(H_MAX * (cbrt(RATIO(sensor_min, sensor_max)) + RATIO(sensor_min, sensor_max))/(1.0 - RATIO(sensor_min, sensor_max)))
+
+void compute_sensor_scaling_params(sensor_bounds_t matrix_sensor_bounds[MATRIX_ROWS][MATRIX_COLS]){
+    sensor_scaling_params_t scaling_params[MATRIX_ROWS][MATRIX_COLS];
+    for (int row = 0; row < MATRIX_ROWS; row++) {
+        for (int col = 0; col < MATRIX_COLS; col++) {
+            if (pin_scan_modes[row][col] == ANALOG) {
+                // scaling_params[row][col].b = x_max * (cbrt(RATIO(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max)) + RATIO(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max))/(1.0 - RATIO(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max));
+                scaling_params[row][col].b = B_PARAM(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max);
+                scaling_params[row][col].a = (int)((float) matrix_sensor_bounds[row][col].min * pow(B_PARAM(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max), 3));
+                dprintf("Sensor MIN: %i\n", (int) matrix_sensor_bounds[row][col].min);
+                dprintf("Sensor MAX: %i\n", (int) matrix_sensor_bounds[row][col].max);
+                dprintf("B: %i\n", scaling_params[row][col].b);
+                dprintf("A: %li\n\n", scaling_params[row][col].a);
+            }
+        }
+    }
+}
+
+
 void keyboard_post_init_kb(void) {
     debug_enable = true;
     eeconfig_read_kb_datablock(&kb_config);
+    // create_lookup_table(kb_config.matrix_scaling_params);
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
@@ -48,8 +78,11 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
                 }
             }
         } else {
+            // runs once after calibration button is released
             eeconfig_update_kb_datablock(&kb_config);
             calibrating_sensors = false;
+            compute_sensor_scaling_params(kb_config.matrix_sensor_bounds);
+            // create_lookup_table(kb_config.matrix_sensor_bounds);
         }
         return false;
     case KC_TOGGLE_RAPID_TRIGGER:
@@ -87,7 +120,6 @@ void matrix_scan_kb(void) {
         min3 = -1;
         max3 = 0;
     }
-
 
     if (calibrating_sensors) {
         for (int row = 0; row < MATRIX_ROWS; row++) {

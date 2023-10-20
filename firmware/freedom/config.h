@@ -5,7 +5,7 @@
 #define ADC_RESOLUTION 12
 
 // corresponds to size of kb_config_t in freedom.h
-#define EECONFIG_KB_DATA_SIZE (4 + 4 * MATRIX_ROWS * MATRIX_COLS)
+#define EECONFIG_KB_DATA_SIZE 124 
 #define DEBUG_MATRIX_SCAN_RATE
 #define BOOTMAGIC_LITE_ROW 1
 #define BOOTMAGIC_LITE_COLUMN 0
