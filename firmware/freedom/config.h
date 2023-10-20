@@ -3,6 +3,7 @@
 #pragma once
 
 #define ADC_RESOLUTION 12
+#define MAX_ADC_READING (1 << ADC_RESOLUTION) - 1
 
 // corresponds to size of kb_config_t in freedom.h
 #define EECONFIG_KB_DATA_SIZE 124 

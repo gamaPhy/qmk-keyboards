@@ -46,7 +46,7 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
     static uint16_t samples[OVERSAMPLING_TOTAL_SAMPLES];
 
     for (int i = 0; i < OVERSAMPLING_TOTAL_SAMPLES; i++) {
-        samples[i] = 4095 - analogReadPin(pin);
+        samples[i] = MAX_ADC_READING - analogReadPin(pin);
     }
 
     insertion_sort(samples, OVERSAMPLING_TOTAL_SAMPLES);

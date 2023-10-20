@@ -37,7 +37,7 @@ typedef struct {
 
 // There are 40 (4mm/0.1mm) distances that need to be represented 
 typedef struct {
-    uint8_t analog_read_distance[1 << ADC_RESOLUTION];
+    uint8_t analog_read_distance[MAX_ADC_READING];
 } lookup_table_t;
 
 typedef struct {
