@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <math.h>
+#include <limits.h>
 
 #include "freedom.h"
 
@@ -41,10 +42,12 @@ void compute_sensor_scaling_params(sensor_bounds_t matrix_sensor_bounds[MATRIX_R
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
                 scaling_params[row][col].b = B_PARAM(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max);
+                scaling_params[row][col].b_decimal = DECIMAL_TO_INT(B_PARAM(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max));
                 scaling_params[row][col].a = (float)matrix_sensor_bounds[row][col].min * pow(B_PARAM(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max), 3);
                 dprintf("Sensor MIN: %i\n", (int) matrix_sensor_bounds[row][col].min);
                 dprintf("Sensor MAX: %i\n", (int) matrix_sensor_bounds[row][col].max);
                 dprintf("B: %i\n", scaling_params[row][col].b);
+                dprintf("B decimal: %li / %i\n", scaling_params[row][col].b_decimal, INT_MAX);
                 dprintf("A: %li\n\n", scaling_params[row][col].a);
             }
         }
