@@ -42,7 +42,7 @@ void compute_sensor_scaling_params(sensor_bounds_t matrix_sensor_bounds[MATRIX_R
             if (pin_scan_modes[row][col] == ANALOG) {
                 // scaling_params[row][col].b = x_max * (cbrt(RATIO(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max)) + RATIO(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max))/(1.0 - RATIO(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max));
                 scaling_params[row][col].b = B_PARAM(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max);
-                scaling_params[row][col].a = (int)((float) matrix_sensor_bounds[row][col].min * pow(B_PARAM(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max), 3));
+                scaling_params[row][col].a = (float)matrix_sensor_bounds[row][col].min * pow(B_PARAM(matrix_sensor_bounds[row][col].min, matrix_sensor_bounds[row][col].max), 3);
                 dprintf("Sensor MIN: %i\n", (int) matrix_sensor_bounds[row][col].min);
                 dprintf("Sensor MAX: %i\n", (int) matrix_sensor_bounds[row][col].max);
                 dprintf("B: %i\n", scaling_params[row][col].b);
