@@ -74,18 +74,6 @@ void compute_sensor_scaling_params(void){
     }
 }
 
-int * sensor_matrix_coords(int num) {
-    static int coords[2];
-    for (int row = 0; row < MATRIX_ROWS; row++) {
-        for (int col = 0; col < MATRIX_COLS; col++) {
-            if (num == sensor_num[row][col]);
-            coords[0] = row;
-            coords[1] = col;
-        }
-    }
-    return coords;
-}
-
 // stores the following calculation into each cell of the lookup table, and pads the rest with either X_MIN or X_MAX depending the side of the array
 // (cbrt(a/sensor_reading) - b) * 10
 // A multiplication of 10 is added to convert mm to mm/10
