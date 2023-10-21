@@ -47,11 +47,15 @@ void compute_sensor_scaling_params(void){
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
-                kb_config.matrix_scaling_params[row][col].b = B_PARAM(kb_config.matrix_sensor_bounds[row][col].min, kb_config.matrix_sensor_bounds[row][col].max);
-                kb_config.matrix_scaling_params[row][col].b_decimal = DECIMAL_TO_INT(B_PARAM(kb_config.matrix_sensor_bounds[row][col].min, kb_config.matrix_sensor_bounds[row][col].max));
-                kb_config.matrix_scaling_params[row][col].a = (float)kb_config.matrix_sensor_bounds[row][col].min * pow(B_PARAM(kb_config.matrix_sensor_bounds[row][col].min, kb_config.matrix_sensor_bounds[row][col].max), 3);
-                dprintf("Sensor MIN: %i\n", (int) kb_config.matrix_sensor_bounds[row][col].min);
-                dprintf("Sensor MAX: %i\n", (int) kb_config.matrix_sensor_bounds[row][col].max);
+                int min = kb_config.matrix_sensor_bounds[row][col].min - kb_config.matrix_scaling_params[row][col].base_value;
+                int max = kb_config.matrix_sensor_bounds[row][col].max - kb_config.matrix_scaling_params[row][col].base_value;
+
+                kb_config.matrix_scaling_params[row][col].b = B_PARAM(min, max);
+                kb_config.matrix_scaling_params[row][col].b_decimal = DECIMAL_TO_INT(B_PARAM(min, max));
+                kb_config.matrix_scaling_params[row][col].a = (float)min * pow(B_PARAM(min, max), 3);
+
+                dprintf("Sensor MIN: %i\n", (int) min);
+                dprintf("Sensor MAX: %i\n", (int) max);
                 dprintf("B: %i\n", kb_config.matrix_scaling_params[row][col].b);
                 dprintf("B decimal: %li / %i\n", kb_config.matrix_scaling_params[row][col].b_decimal, INT_MAX);
                 dprintf("A: %li\n\n", kb_config.matrix_scaling_params[row][col].a);
