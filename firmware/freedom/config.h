@@ -6,10 +6,10 @@
 
 #define ADC_RESOLUTION 12
 #define MAX_ADC_READING (1 << ADC_RESOLUTION) - 1
-// transforms a decimal value to an int. 
-// Ex: The decimal value of 9.123 is 0.123 
-#define DECIMAL_TO_INT(val) (val - (float)(int)val) * (float)INT_MAX 
-#define INT_TO_DECIMAL(val) (float)val / (float)INT_MAX
+// transforms the fractional component of a value to an int 
+// Ex: The fractional component of 9.123 is 0.123 
+#define FRACTION_TO_INT(val) (val - (float)(int)val) * (float)INT_MAX 
+#define INT_TO_FRACTION(val) (float)val / (float)INT_MAX
 
 // corresponds to size of kb_config_t in freedom.h
 // as of QMK commit 713427c, this value can be determined by setting it to something higher than you know kb_config_t will be, then reading the actual block size returned with QMK's error message, and use that value.

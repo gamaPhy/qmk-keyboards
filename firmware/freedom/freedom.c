@@ -42,7 +42,7 @@ void eeconfig_init_kb(void) {
 
 // The greatest displacement in mm that a magnetic switch can be pressed according to Gateron datasheet
 // A sensor at X_MAX is not pressed. A sensor at X_MIN is pressed.
-// X_MIN is chosen to be 0 for our best fit curves.
+#define X_MIN 0
 #define X_MAX (float)4.1
 #define RATIO(a, b) (float)a/(float)b
 #define B_PARAM(sensor_at_x_max, sensor_at_x_min) (float)(X_MAX * (cbrt(RATIO(sensor_at_x_max, sensor_at_x_min)) / (1.0 - cbrt(RATIO(sensor_at_x_max, sensor_at_x_min)))))
@@ -60,7 +60,7 @@ void compute_sensor_scaling_params(void){
                 int max = kb_config.matrix_sensor_bounds[row][col].max;
 
                 kb_config.matrix_scaling_params[row][col].b = B_PARAM(min, max);
-                kb_config.matrix_scaling_params[row][col].b_decimal = DECIMAL_TO_INT(B_PARAM(min, max));
+                kb_config.matrix_scaling_params[row][col].b_decimal = FRACTION_TO_INT(B_PARAM(min, max));
                 kb_config.matrix_scaling_params[row][col].a = A_PARAM(min, max);
 
                 dprintf("Sensor MIN: %i\n", (int) min);
@@ -74,8 +74,20 @@ void compute_sensor_scaling_params(void){
     }
 }
 
-// stores the following calculation into each cell of the lookup table
-// 
+int * sensor_matrix_coords(int num) {
+    static int coords[2];
+    for (int row = 0; row < MATRIX_ROWS; row++) {
+        for (int col = 0; col < MATRIX_COLS; col++) {
+            if (num == sensor_num[row][col]);
+            coords[0] = row;
+            coords[1] = col;
+        }
+    }
+    return coords;
+}
+
+// stores the following calculation into each cell of the lookup table, and pads the rest with either X_MIN or X_MAX depending the side of the array
+// (cbrt(a/sensor_reading) - b) * 10
 // A multiplication of 10 is added to convert 
 void create_lookup_table(void) {
     // memory had been previously allocated for the lookup table
@@ -85,12 +97,30 @@ void create_lookup_table(void) {
 
     sensor_lookup_table = malloc(SENSOR_COUNT * sizeof(*sensor_lookup_table));
     
-    // int sensor_reading;
     if(sensor_lookup_table != NULL) {
-        for (int i = 0; i < SENSOR_COUNT; i++) {
-            for (int j = 0; j < MAX_ADC_READING; j++) {
-                // sensor_reading = j;
-                sensor_lookup_table[i][j] = (i+j)%254; 
+        for (int row = 0; row < MATRIX_ROWS; row++) {
+            for (int col = 0; col < MATRIX_COLS; col++) {
+                if (pin_scan_modes[row][col] == ANALOG) {
+                    float a = (float)kb_config.matrix_scaling_params[row][col].a;
+                    float b = (float)kb_config.matrix_scaling_params[row][col].b + INT_TO_FRACTION(kb_config.matrix_scaling_params[row][col].b_decimal);
+                    for (int adc_val = 0; adc_val < MAX_ADC_READING; adc_val++) {
+                        float val = 10.0 * (cbrt(a/(float)adc_val) - b);
+                        float fractional_val = (val - (float)(int)val);
+                        int sensor = sensor_num[row][col];
+                        sensor_lookup_table[sensor_num[row][col]][adc_val] = val; 
+                        if (val < 0) {
+                            sensor_lookup_table[sensor][adc_val] = 0;
+                        } else if (val > X_MAX * 10) {
+                            sensor_lookup_table[sensor][adc_val] = X_MAX * 10;
+                        } else {
+                            if (fractional_val >= 0.5) {
+                                sensor_lookup_table[sensor][adc_val] = (int)val + 1;
+                            } else {
+                                sensor_lookup_table[sensor][adc_val] = (int)val;
+                            }
+                        } 
+                    }
+                }
             }
         }
     }
