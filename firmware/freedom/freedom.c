@@ -44,31 +44,32 @@ void eeconfig_init_kb(void) {
 // A sensor at X_MAX is not pressed. A sensor at X_MIN is pressed.
 #define X_MIN 0
 #define X_MAX (float)4.1
-#define RATIO(a, b) (float)a/(float)b
-#define B_PARAM(sensor_at_x_max, sensor_at_x_min) (float)(X_MAX * (cbrt(RATIO(sensor_at_x_max, sensor_at_x_min)) / (1.0 - cbrt(RATIO(sensor_at_x_max, sensor_at_x_min)))))
-#define A_PARAM(sensor_at_x_max, sensor_at_x_min) (float)sensor_at_x_min * pow(B_PARAM(sensor_at_x_max, sensor_at_x_min), 3)
+#define RATIO(a, b, base) (float)a/((float)b - (float)base)
+#define B_PARAM(sensor_at_x_max, sensor_at_x_min, base) (float)(X_MAX * (cbrt(RATIO(sensor_at_x_max, sensor_at_x_min, base)) / (1.0 - cbrt(RATIO(sensor_at_x_max, sensor_at_x_min, base)))))
+#define A_PARAM(sensor_at_x_max, sensor_at_x_min, base) ((float)sensor_at_x_min - (float)base) * pow(B_PARAM(sensor_at_x_max, sensor_at_x_min, base), 3)
 
 // Computes and stores the `a` and `b` parameters of the best-fit scaling equation. 
 // b = X_MAX(cbrt(r))/(1-cbrt(r))
-// a = sensor_reading@X_MIN * b^3
-// where `r = sensor_reading@X_MAX / sensor_reading@X_MIN` 
+// a = (sensor_reading@X_MIN - base_value) * b^3
+// where `r = sensor_reading@X_MAX / (sensor_reading@X_MIN - base_value)` 
 void compute_sensor_scaling_params(void){
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
                 int min = kb_config.matrix_sensor_bounds[row][col].min;
                 int max = kb_config.matrix_sensor_bounds[row][col].max;
+                int base_val = kb_config.matrix_scaling_params[row][col].base_value;
 
-                kb_config.matrix_scaling_params[row][col].b = B_PARAM(min, max);
-                kb_config.matrix_scaling_params[row][col].b_decimal = FRACTIONAL_COMPONENT_TO_INT(B_PARAM(min, max));
-                kb_config.matrix_scaling_params[row][col].a = A_PARAM(min, max);
+                kb_config.matrix_scaling_params[row][col].b = B_PARAM(min, max, base_val);
+                kb_config.matrix_scaling_params[row][col].b_decimal = FRACTIONAL_COMPONENT_TO_INT(B_PARAM(min, max, base_val));
+                kb_config.matrix_scaling_params[row][col].a = A_PARAM(min, max, base_val);
 
-                // dprintf("Sensor MIN: %i\n", (int) min);
-                // dprintf("Sensor MAX: %i\n", (int) max);
-                // dprintf("A: %li\n", kb_config.matrix_scaling_params[row][col].a);
-                // dprintf("B: %i\n", kb_config.matrix_scaling_params[row][col].b);
-                // dprintf("B decimal: %li / %i\n", kb_config.matrix_scaling_params[row][col].b_decimal, INT_MAX);
-                // dprintf("BASE: %i\n", kb_config.matrix_scaling_params[row][col].base_value);
+                dprintf("Sensor MIN: %i\n", (int) min);
+                dprintf("Sensor MAX: %i\n", (int) max);
+                dprintf("A: %li\n", kb_config.matrix_scaling_params[row][col].a);
+                dprintf("B: %i\n", kb_config.matrix_scaling_params[row][col].b);
+                dprintf("B decimal: %li / %i\n", kb_config.matrix_scaling_params[row][col].b_decimal, INT_MAX);
+                dprintf("BASE: %i\n", kb_config.matrix_scaling_params[row][col].base_value);
             }
         }
     }
@@ -194,10 +195,10 @@ void matrix_scan_kb(void) {
                     uint16_t sensor_value = MAX_ADC_READING - analogReadPin(pin);
                     sensor_bounds_t* bounds = &kb_config.matrix_sensor_bounds[row][col];
                     if (sensor_value < bounds->min) {
-                        bounds->min = sensor_value - kb_config.matrix_scaling_params[row][col].base_value;
+                        bounds->min = sensor_value;
                     }
                     if (sensor_value > bounds->max) {
-                        bounds->max = sensor_value - kb_config.matrix_scaling_params[row][col].base_value;
+                        bounds->max = sensor_value;
                     }
                 }
             }
