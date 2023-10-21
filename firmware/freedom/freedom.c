@@ -14,7 +14,7 @@ const pin_t direct_pins[MATRIX_ROWS][MATRIX_COLS] = DIRECT_PINS;
 const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS] = PIN_SCAN_MODES;
 const int sensor_num[MATRIX_ROWS][MATRIX_COLS] = SENSOR_NUM;
 
-// There are 40 (4mm/0.1mm) distances that need to be represented 
+// There are minimum of 40 (4mm/0.1mm) distances that need to be represented 
 // To get the real distance a key is pressed, must divide the uint8_t value by 10
 extern uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
 
@@ -49,9 +49,6 @@ void eeconfig_init_kb(void) {
 #define A_PARAM(sensor_at_x_max, sensor_at_x_min, base) ((float)sensor_at_x_min - (float)base) * pow(B_PARAM(sensor_at_x_max, sensor_at_x_min, base), 3)
 
 // Computes and stores the `a` and `b` parameters of the best-fit scaling equation. 
-// b = X_MAX(cbrt(r))/(1-cbrt(r))
-// a = (sensor_reading@X_MIN - base_value) * b^3
-// where `r = sensor_reading@X_MAX / (sensor_reading@X_MIN - base_value)` 
 void compute_sensor_scaling_params(void){
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
@@ -64,19 +61,18 @@ void compute_sensor_scaling_params(void){
                 kb_config.matrix_scaling_params[row][col].b_decimal = FRACTIONAL_COMPONENT_TO_INT(B_PARAM(min, max, base_val));
                 kb_config.matrix_scaling_params[row][col].a = A_PARAM(min, max, base_val);
 
-                dprintf("Sensor MIN: %i\n", (int) min);
-                dprintf("Sensor MAX: %i\n", (int) max);
-                dprintf("A: %li\n", kb_config.matrix_scaling_params[row][col].a);
-                dprintf("B: %i\n", kb_config.matrix_scaling_params[row][col].b);
-                dprintf("B decimal: %li / %i\n", kb_config.matrix_scaling_params[row][col].b_decimal, INT_MAX);
-                dprintf("BASE: %i\n", kb_config.matrix_scaling_params[row][col].base_value);
+                // dprintf("Sensor MIN: %i\n", (int) min);
+                // dprintf("Sensor MAX: %i\n", (int) max);
+                // dprintf("A: %li\n", kb_config.matrix_scaling_params[row][col].a);
+                // dprintf("B: %i\n", kb_config.matrix_scaling_params[row][col].b);
+                // dprintf("B decimal: %li / %i\n", kb_config.matrix_scaling_params[row][col].b_decimal, INT_MAX);
+                // dprintf("BASE: %i\n", kb_config.matrix_scaling_params[row][col].base_value);
             }
         }
     }
 }
 
-// stores the following calculation into each cell of the lookup table, and pads the rest with either X_MIN or X_MAX depending the side of the array
-// (cbrt(a/sensor_reading) - b) * 10
+// Calculates and stores each cell of the lookup table, and pads the rest with either X_MIN or X_MAX depending the side of the array
 // A multiplication of 10 is added to convert mm to mm/10
 void create_lookup_table(void) {
     // memory had been previously allocated for the lookup table
@@ -92,8 +88,9 @@ void create_lookup_table(void) {
                 if (pin_scan_modes[row][col] == ANALOG) {
                     float a = (float)kb_config.matrix_scaling_params[row][col].a;
                     float b = (float)kb_config.matrix_scaling_params[row][col].b + INT_TO_FRACTIONAL_COMPONENT(kb_config.matrix_scaling_params[row][col].b_decimal);
+                    float base = (float)kb_config.matrix_scaling_params[row][col].base_value;
                     for (int adc_val = 0; adc_val < MAX_ADC_READING; adc_val++) {
-                        float val = 10.0 * (cbrt(a/(float)adc_val) - b);
+                        float val = 10.0 * (cbrt(a/((float)adc_val - base)) - b);
                         float fractional_val = (val - (float)(int)val);
                         int sensor = sensor_num[row][col];
 
