@@ -47,8 +47,8 @@ void compute_sensor_scaling_params(void){
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
-                int min = kb_config.matrix_sensor_bounds[row][col].min - kb_config.matrix_scaling_params[row][col].base_value;
-                int max = kb_config.matrix_sensor_bounds[row][col].max - kb_config.matrix_scaling_params[row][col].base_value;
+                int min = kb_config.matrix_sensor_bounds[row][col].min;
+                int max = kb_config.matrix_sensor_bounds[row][col].max;
 
                 kb_config.matrix_scaling_params[row][col].b = B_PARAM(min, max);
                 kb_config.matrix_scaling_params[row][col].b_decimal = DECIMAL_TO_INT(B_PARAM(min, max));
@@ -56,9 +56,10 @@ void compute_sensor_scaling_params(void){
 
                 dprintf("Sensor MIN: %i\n", (int) min);
                 dprintf("Sensor MAX: %i\n", (int) max);
+                dprintf("A: %li\n", kb_config.matrix_scaling_params[row][col].a);
                 dprintf("B: %i\n", kb_config.matrix_scaling_params[row][col].b);
                 dprintf("B decimal: %li / %i\n", kb_config.matrix_scaling_params[row][col].b_decimal, INT_MAX);
-                dprintf("A: %li\n\n", kb_config.matrix_scaling_params[row][col].a);
+                dprintf("BASE: %i\n", kb_config.matrix_scaling_params[row][col].base_value);
             }
         }
     }
@@ -157,10 +158,10 @@ void matrix_scan_kb(void) {
                     uint16_t sensor_value = MAX_ADC_READING - analogReadPin(pin);
                     sensor_bounds_t* bounds = &kb_config.matrix_sensor_bounds[row][col];
                     if (sensor_value < bounds->min) {
-                        bounds->min = sensor_value;
+                        bounds->min = sensor_value - kb_config.matrix_scaling_params[row][col].base_value;
                     }
                     if (sensor_value > bounds->max) {
-                        bounds->max = sensor_value;
+                        bounds->max = sensor_value - kb_config.matrix_scaling_params[row][col].base_value;
                     }
                 }
             }

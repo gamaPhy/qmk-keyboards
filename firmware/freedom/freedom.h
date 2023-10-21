@@ -40,6 +40,7 @@ typedef struct {
     uint8_t actuation_point_mm;
     uint8_t release_point_mm;
     uint8_t rapid_trigger_sensitivity_mm;
+    // sensor bounds after `base_value` is subtracted
     sensor_bounds_t matrix_sensor_bounds[MATRIX_ROWS][MATRIX_COLS];
     sensor_scaling_params_t matrix_scaling_params[MATRIX_ROWS][MATRIX_COLS];
 } kb_config_t;
