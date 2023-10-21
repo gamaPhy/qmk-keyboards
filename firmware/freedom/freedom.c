@@ -15,7 +15,7 @@ const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS] = PIN_SCAN_MODES;
 const int sensor_num[MATRIX_ROWS][MATRIX_COLS] = SENSOR_NUM;
 
 // There are 40 (4mm/0.1mm) distances that need to be represented 
-uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
+extern uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
 
 uint16_t min1, max1, min2, max2, min3, max3;
 
