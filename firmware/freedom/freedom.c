@@ -95,12 +95,15 @@ void create_lookup_table(void) {
                         float val = 10.0 * (cbrt(a/(float)adc_val) - b);
                         float fractional_val = (val - (float)(int)val);
                         int sensor = sensor_num[row][col];
+
                         sensor_lookup_table[sensor_num[row][col]][adc_val] = val; 
+
                         if (val < 0) {
-                            sensor_lookup_table[sensor][adc_val] = 0;
+                            sensor_lookup_table[sensor][adc_val] = X_MIN * 10;
                         } else if (val > X_MAX * 10) {
                             sensor_lookup_table[sensor][adc_val] = X_MAX * 10;
                         } else {
+                            // round int up or down
                             if (fractional_val >= 0.5) {
                                 sensor_lookup_table[sensor][adc_val] = (int)val + 1;
                             } else {
