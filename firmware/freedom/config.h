@@ -8,8 +8,8 @@
 #define MAX_ADC_READING (1 << ADC_RESOLUTION) - 1
 // transforms the fractional component of a value to an int 
 // Ex: The fractional component of 9.123 is 0.123 
-#define FRACTION_TO_INT(val) (val - (float)(int)val) * (float)INT_MAX 
-#define INT_TO_FRACTION(val) (float)val / (float)INT_MAX
+#define FRACTIONAL_COMPONENT_TO_INT(val) (val - (float)(int)val) * (float)INT_MAX 
+#define INT_TO_FRACTIONAL_COMPONENT(val) (float)val / (float)INT_MAX
 
 // corresponds to size of kb_config_t in freedom.h
 // as of QMK commit 713427c, this value can be determined by setting it to something higher than you know kb_config_t will be, then reading the actual block size returned with QMK's error message, and use that value.

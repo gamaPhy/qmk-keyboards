@@ -60,7 +60,7 @@ void compute_sensor_scaling_params(void){
                 int max = kb_config.matrix_sensor_bounds[row][col].max;
 
                 kb_config.matrix_scaling_params[row][col].b = B_PARAM(min, max);
-                kb_config.matrix_scaling_params[row][col].b_decimal = FRACTION_TO_INT(B_PARAM(min, max));
+                kb_config.matrix_scaling_params[row][col].b_decimal = FRACTIONAL_COMPONENT_TO_INT(B_PARAM(min, max));
                 kb_config.matrix_scaling_params[row][col].a = A_PARAM(min, max);
 
                 dprintf("Sensor MIN: %i\n", (int) min);
@@ -90,7 +90,7 @@ void create_lookup_table(void) {
             for (int col = 0; col < MATRIX_COLS; col++) {
                 if (pin_scan_modes[row][col] == ANALOG) {
                     float a = (float)kb_config.matrix_scaling_params[row][col].a;
-                    float b = (float)kb_config.matrix_scaling_params[row][col].b + INT_TO_FRACTION(kb_config.matrix_scaling_params[row][col].b_decimal);
+                    float b = (float)kb_config.matrix_scaling_params[row][col].b + INT_TO_FRACTIONAL_COMPONENT(kb_config.matrix_scaling_params[row][col].b_decimal);
                     for (int adc_val = 0; adc_val < MAX_ADC_READING; adc_val++) {
                         float val = 10.0 * (cbrt(a/(float)adc_val) - b);
                         float fractional_val = (val - (float)(int)val);
