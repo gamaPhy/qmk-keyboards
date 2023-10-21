@@ -15,6 +15,7 @@ const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS] = PIN_SCAN_MODES;
 const int sensor_num[MATRIX_ROWS][MATRIX_COLS] = SENSOR_NUM;
 
 // There are 40 (4mm/0.1mm) distances that need to be represented 
+// To get the real distance a key is pressed, must divide the uint8_t value by 10
 extern uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
 
 uint16_t min1, max1, min2, max2, min3, max3;
@@ -39,10 +40,15 @@ void eeconfig_init_kb(void) {
     eeconfig_update_kb_datablock(&kb_config);
 }
 
+// The greatest displacement in mm that a magnetic switch can be pressed according to Gateron datasheet
+#define X_MAX (float)4.1
 #define RATIO(min, max) (float)min/(float)max
-#define H_MAX (float)4.1
-#define B_PARAM(sensor_min, sensor_max) (float)(H_MAX * (cbrt(RATIO(sensor_min, sensor_max)) + RATIO(sensor_min, sensor_max))/(1.0 - RATIO(sensor_min, sensor_max)))
+#define B_PARAM(sensor_min, sensor_max) (float)(X_MAX * (cbrt(RATIO(sensor_min, sensor_max)) + RATIO(sensor_min, sensor_max))/(1.0 - RATIO(sensor_min, sensor_max)))
 
+// Computes and stores the `a` and `b` parameters of the best-fit scaling equation. 
+// b = X_MAX(cbrt(d) + d)/(1-d)
+// a = sensor_reading@X_MAX * b^3
+// where `d = sensor_min / sensor_max` 
 void compute_sensor_scaling_params(void){
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
@@ -66,6 +72,7 @@ void compute_sensor_scaling_params(void){
 }
 
 void create_lookup_table(void) {
+    // memory had been previously allocated for the lookup table
     if (sensor_lookup_table != NULL) {
         free(sensor_lookup_table);
     }
