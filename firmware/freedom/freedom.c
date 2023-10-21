@@ -88,7 +88,7 @@ int * sensor_matrix_coords(int num) {
 
 // stores the following calculation into each cell of the lookup table, and pads the rest with either X_MIN or X_MAX depending the side of the array
 // (cbrt(a/sensor_reading) - b) * 10
-// A multiplication of 10 is added to convert 
+// A multiplication of 10 is added to convert mm to mm/10
 void create_lookup_table(void) {
     // memory had been previously allocated for the lookup table
     if (sensor_lookup_table != NULL) {
