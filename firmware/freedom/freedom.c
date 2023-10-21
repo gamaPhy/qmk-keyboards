@@ -63,12 +63,12 @@ void compute_sensor_scaling_params(void){
                 kb_config.matrix_scaling_params[row][col].b_decimal = FRACTIONAL_COMPONENT_TO_INT(B_PARAM(min, max));
                 kb_config.matrix_scaling_params[row][col].a = A_PARAM(min, max);
 
-                dprintf("Sensor MIN: %i\n", (int) min);
-                dprintf("Sensor MAX: %i\n", (int) max);
-                dprintf("A: %li\n", kb_config.matrix_scaling_params[row][col].a);
-                dprintf("B: %i\n", kb_config.matrix_scaling_params[row][col].b);
-                dprintf("B decimal: %li / %i\n", kb_config.matrix_scaling_params[row][col].b_decimal, INT_MAX);
-                dprintf("BASE: %i\n", kb_config.matrix_scaling_params[row][col].base_value);
+                // dprintf("Sensor MIN: %i\n", (int) min);
+                // dprintf("Sensor MAX: %i\n", (int) max);
+                // dprintf("A: %li\n", kb_config.matrix_scaling_params[row][col].a);
+                // dprintf("B: %i\n", kb_config.matrix_scaling_params[row][col].b);
+                // dprintf("B decimal: %li / %i\n", kb_config.matrix_scaling_params[row][col].b_decimal, INT_MAX);
+                // dprintf("BASE: %i\n", kb_config.matrix_scaling_params[row][col].base_value);
             }
         }
     }
