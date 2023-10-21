@@ -7,9 +7,16 @@
 #include "freedom.h"
 
 bool calibrating_sensors = false;
+
 kb_config_t kb_config;
+
 const pin_t direct_pins[MATRIX_ROWS][MATRIX_COLS] = DIRECT_PINS;
 const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS] = PIN_SCAN_MODES;
+const int sensor_num[MATRIX_ROWS][MATRIX_COLS] = SENSOR_NUM;
+
+// There are 40 (4mm/0.1mm) distances that need to be represented 
+uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
+
 uint16_t min1, max1, min2, max2, min3, max3;
 
 void eeconfig_init_kb(void) {
@@ -54,6 +61,19 @@ void compute_sensor_scaling_params(void){
 }
 
 void create_lookup_table(void) {
+    if (sensor_lookup_table != NULL) {
+        free(sensor_lookup_table);
+    }
+
+    sensor_lookup_table = malloc(SENSOR_COUNT * sizeof(*sensor_lookup_table));
+    
+    if(sensor_lookup_table != NULL) {
+        for (int i = 0; i < SENSOR_COUNT; i++) {
+            for (int j = 0; j < MAX_ADC_READING; j++) {
+                sensor_lookup_table[i][j] = (i+j)%254; 
+            }
+        }
+    }
 }
 
 

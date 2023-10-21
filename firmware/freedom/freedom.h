@@ -35,11 +35,6 @@ typedef struct {
     uint16_t base_value;
 } sensor_scaling_params_t;
 
-// There are 40 (4mm/0.1mm) distances that need to be represented 
-typedef struct {
-    uint8_t analog_read_distance[MAX_ADC_READING];
-} lookup_table_t;
-
 typedef struct {
     bool rapid_trigger;
     uint8_t actuation_point_mm;

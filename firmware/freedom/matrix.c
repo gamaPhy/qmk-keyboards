@@ -5,6 +5,8 @@
 extern matrix_row_t raw_matrix[MATRIX_ROWS]; // raw values
 extern matrix_row_t matrix[MATRIX_ROWS];     // debounced values
 extern uint16_t     min1, max1, min2, max2, min3, max3;
+
+
 #define OVERSAMPLING_USABLE_POWER 3
 #define OVERSAMPLING_OUTLIERS 3
 #define OVERSAMPLING_TOTAL_SAMPLES (1 << OVERSAMPLING_USABLE_POWER)
