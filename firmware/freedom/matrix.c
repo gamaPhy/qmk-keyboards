@@ -16,10 +16,6 @@ uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
 #define OVERSAMPLING_OUTLIERS 3
 #define OVERSAMPLING_TOTAL_SAMPLES (1 << OVERSAMPLING_USABLE_POWER)
 
-int map(int input, int input_start, int input_end, int output_start, int output_end) {
-    return (input - input_start) * (output_end - output_start) / (input_end - input_start) + output_start;
-}
-
 void matrix_init_custom(void) {
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
@@ -66,6 +62,7 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
     }
 
     uint16_t sensor_value = total / count;
+    uint8_t key_x = sensor_lookup_table[sensor_num[row][col]][sensor_value];
 
     if (col == 0) {
         if (sensor_value > max1) {
@@ -92,22 +89,21 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
         }
     }
 
-    uint16_t actuation_point_adc = map(kb_config.actuation_point_mm, 0, 40, kb_config.matrix_sensor_bounds[row][col].min, kb_config.matrix_sensor_bounds[row][col].max);
+    uint16_t actuation_point_adc = kb_config.actuation_point_mm;
 
     if (kb_config.rapid_trigger) {
-        // converts the sensitivity's unit from mm to the amount read by ADC
-        uint16_t sensitivity_delta = map(kb_config.rapid_trigger_sensitivity_mm, 0, 40, 0, kb_config.matrix_sensor_bounds[row][col].max - kb_config.matrix_sensor_bounds[row][col].min);
+        uint16_t sensitivity_delta = kb_config.rapid_trigger_sensitivity_mm;
         if (previous_states[row][col]) {
             // while the key is pressed, keep track of the lowest point of the key in current_extremes.
             // if the key is raised above the lowest point by sensitivity_delta, release the key.
             uint16_t release_threshhold = current_extremes[row][col] - sensitivity_delta;
-            if (sensor_value < release_threshhold) {
-                current_extremes[row][col] = sensor_value;
+            if (key_x < release_threshhold) {
+                current_extremes[row][col] = key_x;
                 return previous_states[row][col] = false;
             }
             // if the key is pressed down farther, release_threshhold will be lower in subsequent scans
-            if (sensor_value > current_extremes[row][col]) {
-                current_extremes[row][col] = sensor_value;
+            if (key_x > current_extremes[row][col]) {
+                current_extremes[row][col] = key_x;
             }
             // the key did not go above the release_threshhold, so it stays pressed
             return previous_states[row][col] = true;
@@ -116,23 +112,23 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
             // if the key is pressed below the highest point by sensitivity_delta, actuate the key.
             // however, the key must also be past the main actuation point
             uint16_t actuate_threshhold = current_extremes[row][col] + sensitivity_delta;
-            if (sensor_value > actuate_threshhold && sensor_value > actuation_point_adc) {
-                current_extremes[row][col] = sensor_value;
+            if (key_x > actuate_threshhold && key_x > actuation_point_adc) {
+                current_extremes[row][col] = key_x;
                 return previous_states[row][col] = true;
             }
             // if the key is raised farther, actuate_threshhold will be higher in subsequent scans
-            if (sensor_value < current_extremes[row][col]) {
-                current_extremes[row][col] = sensor_value;
+            if (key_x < current_extremes[row][col]) {
+                current_extremes[row][col] = key_x;
             }
             // the key did not go below the actuate_threshhold, so it stays released
             return previous_states[row][col] = false;
         }
     } else {
-        uint16_t release_point_adc = map(kb_config.release_point_mm, 0, 40, kb_config.matrix_sensor_bounds[row][col].min, kb_config.matrix_sensor_bounds[row][col].max);
+        uint16_t release_point_adc = kb_config.release_point_mm;
         if (previous_states[row][col]) {
-            return previous_states[row][col] = sensor_value > release_point_adc;
+            return previous_states[row][col] = key_x > release_point_adc;
         } else {
-            return previous_states[row][col] = sensor_value > actuation_point_adc;
+            return previous_states[row][col] = key_x > actuation_point_adc;
         }
     }
 }
