@@ -1,6 +1,9 @@
 // Copyright 2023 gamaPhy (https://gamaphy.com/)
 // SPDX-License-Identifier: GPL-3.0-or-later
+
 #include QMK_KEYBOARD_H
+
+#include "SensorRead.h"
 
 extern matrix_row_t raw_matrix[MATRIX_ROWS]; // raw values
 extern matrix_row_t matrix[MATRIX_ROWS];     // debounced values
@@ -50,7 +53,7 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
     static uint16_t samples[OVERSAMPLING_TOTAL_SAMPLES];
 
     for (int i = 0; i < OVERSAMPLING_TOTAL_SAMPLES; i++) {
-        samples[i] = MAX_ADC_READING - analogReadPin(pin);
+        samples[i] = sensorRead(pin);
     }
 
     insertion_sort(samples, OVERSAMPLING_TOTAL_SAMPLES);

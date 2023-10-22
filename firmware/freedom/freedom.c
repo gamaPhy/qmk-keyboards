@@ -5,6 +5,7 @@
 #include <limits.h>
 
 #include "freedom.h"
+#include "SensorRead.h"
 
 bool calibrating_sensors = false;
 
@@ -40,13 +41,15 @@ void eeconfig_init_kb(void) {
     eeconfig_update_kb_datablock(&kb_config);
 }
 
+// A sensor at X_MIN is when the switch is completely released. A sensor at X_MAX is completely pressed.
+#define X_MIN (float)0
 // The greatest displacement in mm that a magnetic switch can be pressed according to Gateron datasheet
-// A sensor at X_MAX is not pressed. A sensor at X_MIN is pressed.
-#define X_MIN 0
 #define X_MAX (float)4.1
-#define RATIO(a, b, base) (float)a/((float)b - (float)base)
-#define B_PARAM(sensor_at_x_max, sensor_at_x_min, base) (float)(X_MAX * (cbrt(RATIO(sensor_at_x_max, sensor_at_x_min, base)) / (1.0 - cbrt(RATIO(sensor_at_x_max, sensor_at_x_min, base)))))
-#define A_PARAM(sensor_at_x_max, sensor_at_x_min, base) ((float)sensor_at_x_min - (float)base) * pow(B_PARAM(sensor_at_x_max, sensor_at_x_min, base), 3)
+// sensor_max is assumed to be where the key is at X_MAX, ie. completely pressed.
+// sensor_min is assumed to be where the key is at X_MIN, ie. completely released.
+#define RATIO(sensor_max, sensor_min, base) ((float)sensor_max - (float)base)/((float)sensor_min - (float)base)
+#define B_PARAM(sensor_max, sensor_min, base) (float)((X_MAX * cbrt(RATIO(sensor_max, sensor_min, base)) - X_MIN) / (1.0 - cbrt(RATIO(sensor_max, sensor_min, base))))
+#define A_PARAM(sensor_max, sensor_min, base) ((float)sensor_min - (float)base) * (pow(B_PARAM(sensor_max, sensor_min, base), 3) + X_MIN)
 
 // Computes and stores the `a` and `b` parameters of the best-fit scaling equation. 
 void compute_sensor_scaling_params(void){
@@ -57,9 +60,9 @@ void compute_sensor_scaling_params(void){
                 int max = kb_config.matrix_sensor_bounds[row][col].max;
                 int base_val = kb_config.matrix_scaling_params[row][col].base_value;
 
-                kb_config.matrix_scaling_params[row][col].b = B_PARAM(min, max, base_val);
-                kb_config.matrix_scaling_params[row][col].b_decimal = FRACTIONAL_COMPONENT_TO_INT(B_PARAM(min, max, base_val));
-                kb_config.matrix_scaling_params[row][col].a = A_PARAM(min, max, base_val);
+                kb_config.matrix_scaling_params[row][col].b = B_PARAM(max, min, base_val);
+                kb_config.matrix_scaling_params[row][col].b_decimal = FRACTIONAL_COMPONENT_TO_INT(B_PARAM(max, min, base_val));
+                kb_config.matrix_scaling_params[row][col].a = A_PARAM(max, min, base_val);
 
                 // dprintf("Sensor MIN: %i\n", (int) min);
                 // dprintf("Sensor MAX: %i\n", (int) max);
@@ -189,7 +192,7 @@ void matrix_scan_kb(void) {
             for (int col = 0; col < MATRIX_COLS; col++) {
                 if (pin_scan_modes[row][col] == ANALOG) {
                     pin_t pin = direct_pins[row][col];
-                    uint16_t sensor_value = MAX_ADC_READING - analogReadPin(pin);
+                    uint16_t sensor_value = sensorRead(pin);
                     sensor_bounds_t* bounds = &kb_config.matrix_sensor_bounds[row][col];
                     if (sensor_value < bounds->min) {
                         bounds->min = sensor_value;

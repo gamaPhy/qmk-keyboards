@@ -28,10 +28,10 @@ typedef struct {
 // y(x) = (a/(x+b)^3) + base_value
 // where `base_value` is the value output from a HE sensor with no switches placed on the PCB.
 typedef struct {
-    uint32_t a;
-    uint16_t b;
+    int32_t a;
+    int16_t b;
     // The actual decimal value of `b` is derived by doing `(float)b_decimal / (float)INT_MAX`
-    uint32_t b_decimal;
+    int32_t b_decimal;
     uint16_t base_value;
 } sensor_scaling_params_t;
 
