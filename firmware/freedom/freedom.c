@@ -99,7 +99,7 @@ void create_lookup_table(void) {
 
                         sensor_lookup_table[sensor_num[row][col]][adc_val] = val; 
 
-                        if (val < 0) {
+                        if (val < X_MIN) {
                             sensor_lookup_table[sensor][adc_val] = X_MIN * 10;
                         } else if (val > X_MAX * 10) {
                             sensor_lookup_table[sensor][adc_val] = X_MAX * 10;
