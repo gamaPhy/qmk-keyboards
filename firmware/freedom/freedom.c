@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <limits.h>
+#include <unistd.h>
 
 #include "freedom.h"
 #include "sensor_read.h"
@@ -64,12 +65,12 @@ void compute_sensor_scaling_params(void){
                 kb_config.matrix_scaling_params[row][col].b_decimal = FRACTIONAL_COMPONENT_TO_INT(B_PARAM(max, min, base_val));
                 kb_config.matrix_scaling_params[row][col].a = A_PARAM(max, min, base_val);
 
-                // dprintf("Sensor MIN: %i\n", (int) min);
-                // dprintf("Sensor MAX: %i\n", (int) max);
-                // dprintf("A: %li\n", kb_config.matrix_scaling_params[row][col].a);
-                // dprintf("B: %i\n", kb_config.matrix_scaling_params[row][col].b);
-                // dprintf("B decimal: %li / %i\n", kb_config.matrix_scaling_params[row][col].b_decimal, INT_MAX);
-                // dprintf("BASE: %i\n", kb_config.matrix_scaling_params[row][col].base_value);
+                dprintf("Sensor MIN: %i\n", (int) min);
+                dprintf("Sensor MAX: %i\n", (int) max);
+                dprintf("A: %li\n", kb_config.matrix_scaling_params[row][col].a);
+                dprintf("B: %i\n", kb_config.matrix_scaling_params[row][col].b);
+                dprintf("B decimal: %li / %i\n", kb_config.matrix_scaling_params[row][col].b_decimal, INT_MAX);
+                dprintf("BASE: %i\n", kb_config.matrix_scaling_params[row][col].base_value);
             }
         }
     }
@@ -123,6 +124,7 @@ void keyboard_post_init_kb(void) {
     debug_enable = true;
     eeconfig_read_kb_datablock(&kb_config);
     create_lookup_table();
+    setPinOutput(PICO_LED);
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
@@ -133,6 +135,10 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
     switch (keycode) {
     case KC_CALIBRATE:
         if (record->event.pressed) {
+            rgblight_sethsv_noeeprom(HSV_BLACK);
+            // For Pico users, notify of calibration by turning on-board LED on.
+            writePinHigh(PICO_LED);
+
             // this will disable analog keys while calibrating
             calibrating_sensors = true;
             for (int row = 0; row < MATRIX_ROWS; row++) {
@@ -145,6 +151,9 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
             }
         } else {
             // runs once after calibration button is released
+            rgblight_reload_from_eeprom();
+            writePinLow(PICO_LED);
+
             calibrating_sensors = false;
             compute_sensor_scaling_params();
             create_lookup_table();
