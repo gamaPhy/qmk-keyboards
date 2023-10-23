@@ -1,0 +1,5 @@
+{
+  "C_Cpp.errorSquiggles": "disabled",
+  "C_Cpp.dimInactiveRegions": false,
+  "cmake.sourceDirectory": "/home/tibee/Developer/Gamaphy/qmk-keyboards/qmk_firmware/lib/pico-sdk"
+}
