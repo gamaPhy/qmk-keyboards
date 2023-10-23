@@ -7,6 +7,27 @@
 #include "freedom.h"
 #include "sensor_read.h"
 
+led_config_t g_led_config = { {
+  // Key Matrix to LED Index
+  {7, 8, 9},
+  {NO_LED, NO_LED, NO_LED},
+}, {
+  // LED Index to Physical Position
+  { 0,  0 }, 
+  { 0,  0 }, 
+  { 0,  0 }, 
+  { 0,  0 }, 
+  { 0,  0 }, 
+  { 0,  0 }, 
+  { 0,  0 }, 
+  { 0,  0 }, 
+  { 0,  0 }, 
+  { 0,  0 } 
+}, {
+  // LED Index to Flag
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+} };
+
 bool calibrating_sensors = false;
 
 kb_config_t kb_config;
