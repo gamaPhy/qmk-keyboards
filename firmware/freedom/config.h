@@ -23,6 +23,10 @@
 
 #define WS2812_DI_PIN GP12
 #define WS2812_PIO_USE_PIO0
+
+// GPIO corresponding to Rasberry Pi Pico LED
+#define PICO_LED GP25
+
 // #define WS2812_PWM_DRIVER PWMD3
 // #define WS2812_PWM_CHANNEL 4
 // #define WS2812_PWM_PAL_MODE 2

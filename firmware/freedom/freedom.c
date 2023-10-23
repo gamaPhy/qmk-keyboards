@@ -124,6 +124,7 @@ void keyboard_post_init_kb(void) {
     debug_enable = true;
     eeconfig_read_kb_datablock(&kb_config);
     create_lookup_table();
+    setPinOutput(PICO_LED);
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
@@ -134,7 +135,9 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
     switch (keycode) {
     case KC_CALIBRATE:
         if (record->event.pressed) {
-            rgblight_disable_noeeprom();
+            rgblight_sethsv_noeeprom(HSV_BLACK);
+            // For Pico users, notify of calibration by turning on-board LED on.
+            writePinHigh(PICO_LED);
 
             // this will disable analog keys while calibrating
             calibrating_sensors = true;
@@ -149,6 +152,8 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
         } else {
             // runs once after calibration button is released
             rgblight_reload_from_eeprom();
+            writePinLow(PICO_LED);
+
             calibrating_sensors = false;
             compute_sensor_scaling_params();
             create_lookup_table();
