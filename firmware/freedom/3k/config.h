@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#define RGB_MATRIX_LED_COUNT 10
+
 #define PIN_SCAN_MODES { \
     { ANALOG,  ANALOG,  ANALOG }, \
     { DIGITAL, DIGITAL, DIGITAL } \
