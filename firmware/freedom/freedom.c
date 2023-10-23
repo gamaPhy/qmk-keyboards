@@ -5,7 +5,7 @@
 #include <limits.h>
 
 #include "freedom.h"
-#include "SensorRead.h"
+#include "sensor_read.h"
 
 bool calibrating_sensors = false;
 

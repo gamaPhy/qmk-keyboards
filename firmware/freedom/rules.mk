@@ -11,4 +11,4 @@ RGBLIGHT_DRIVER = WS2812
 
 SRC += matrix.c
 SRC += analog.c
-SRC += SensorRead.c
+SRC += sensor_read.c

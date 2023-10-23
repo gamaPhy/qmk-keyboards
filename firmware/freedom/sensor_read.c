@@ -1,4 +1,4 @@
-#include "SensorRead.h"
+#include "sensor_read.h"
 
 int sensorRead(pin_t pin) {
   if (POLARITY_FLIP) {
