@@ -21,3 +21,10 @@ And to flash, you could run:
     ./in_qmk.sh qmk flash -kb gamaphy/freedom/3k -km via
 
 It is suggested to use the `qmk` commands instead of `make` commands, since interrupting a `make` command will mess up the files in the `qmk_firmware` submodule.
+
+## Implementation
+
+### Sensor scaling and calibration
+
+The output of a HE(Hall Effect) sensor, `sX_out` (where `X` is the sensor number), is an analog voltage value that is read by the ADC. The calibration and scaling process maps each value of `sX_out` to the distance that the switch `X` is being pressed. This lookup table is stored as an array in static memory, and is loaded into RAM when the board boots up.
+
