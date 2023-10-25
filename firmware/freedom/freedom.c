@@ -3,7 +3,6 @@
 
 #include <math.h>
 #include <limits.h>
-#include <unistd.h>
 
 #include "freedom.h"
 #include "sensor_read.h"
