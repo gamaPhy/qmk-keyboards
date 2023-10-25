@@ -46,12 +46,9 @@ void eeconfig_init_kb(void) {
 #define X_MIN (float)0
 // The greatest displacement in mm that a magnetic switch can be pressed according to Gateron datasheet
 #define X_MAX (float)4.1
+
 // sensor_max is assumed to be where the key is at X_MAX, ie. completely pressed.
 // sensor_min is assumed to be where the key is at X_MIN, ie. completely released.
-#define RATIO(sensor_max, sensor_min, base) ((float)sensor_max - (float)base)/((float)sensor_min - (float)base)
-#define B_PARAM(sensor_max, sensor_min, base) (float)((X_MAX * cbrt(RATIO(sensor_max, sensor_min, base)) - X_MIN) / (1.0 - cbrt(RATIO(sensor_max, sensor_min, base))))
-#define A_PARAM(b_param, sensor_max, sensor_min, base) ((float)sensor_min - (float)base) * (pow(b_param, 3) + X_MIN)
-
 float compute_b_param(int sensor_max, int sensor_min, int base_val) {
     return (float)((X_MAX * cbrt(RATIO(sensor_max, sensor_min, base_val)) - X_MIN) / (1.0 - cbrt(RATIO(sensor_max, sensor_min, base_val))));
 }
