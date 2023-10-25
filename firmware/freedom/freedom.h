@@ -30,8 +30,8 @@ typedef struct {
 typedef struct {
     int32_t a;
     int16_t b;
-    // The actual decimal value of `b` is derived by doing `(float)b_decimal / (float)INT_MAX`
-    int32_t b_decimal;
+    // The actual decimal value of `b` is derived by doing `(float)b_fractional_component / (float)INT_MAX`
+    int32_t b_fractional_component;
     uint16_t base_value;
 } sensor_scaling_params_t;
 

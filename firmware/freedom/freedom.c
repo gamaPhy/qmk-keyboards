@@ -34,7 +34,7 @@ void eeconfig_init_kb(void) {
                 kb_config.matrix_sensor_bounds[row][col].max = 3000;
                 kb_config.matrix_scaling_params[row][col].a = 0;
                 kb_config.matrix_scaling_params[row][col].b = 0;
-                kb_config.matrix_scaling_params[row][col].b_decimal = 0;
+                kb_config.matrix_scaling_params[row][col].b_fractional_component = 0;
                 kb_config.matrix_scaling_params[row][col].base_value = 0;
             }
         }
@@ -50,7 +50,26 @@ void eeconfig_init_kb(void) {
 // sensor_min is assumed to be where the key is at X_MIN, ie. completely released.
 #define RATIO(sensor_max, sensor_min, base) ((float)sensor_max - (float)base)/((float)sensor_min - (float)base)
 #define B_PARAM(sensor_max, sensor_min, base) (float)((X_MAX * cbrt(RATIO(sensor_max, sensor_min, base)) - X_MIN) / (1.0 - cbrt(RATIO(sensor_max, sensor_min, base))))
-#define A_PARAM(sensor_max, sensor_min, base) ((float)sensor_min - (float)base) * (pow(B_PARAM(sensor_max, sensor_min, base), 3) + X_MIN)
+#define A_PARAM(b_param, sensor_max, sensor_min, base) ((float)sensor_min - (float)base) * (pow(b_param, 3) + X_MIN)
+
+float compute_b_param(int sensor_max, int sensor_min, int base_val) {
+    return (float)((X_MAX * cbrt(RATIO(sensor_max, sensor_min, base_val)) - X_MIN) / (1.0 - cbrt(RATIO(sensor_max, sensor_min, base_val))));
+}
+
+float compute_a_param(float b_param, int sensor_max, int sensor_min, int base_val) {
+    return ((float)sensor_min - (float)base_val) * (pow(b_param, 3) + X_MIN);
+}
+
+// transforms the fractional component of a value to an int 
+// Ex: The fractional component of 9.123 is 0.123 
+int fractional_component_as_int(float val){
+    return (val - (float)(int)val) * (float)INT_MAX;
+}
+
+float int_components_to_float(int val, int fractional_component_as_int){
+    float fractional_component_as_float = (float)fractional_component_as_int / (float)INT_MAX;
+    return val + fractional_component_as_float;
+}
 
 // Computes and stores the `a` and `b` parameters of the best-fit scaling equation. 
 void compute_sensor_scaling_params(void){
@@ -61,15 +80,16 @@ void compute_sensor_scaling_params(void){
                 int max = kb_config.matrix_sensor_bounds[row][col].max;
                 int base_val = kb_config.matrix_scaling_params[row][col].base_value;
 
-                kb_config.matrix_scaling_params[row][col].b = B_PARAM(max, min, base_val);
-                kb_config.matrix_scaling_params[row][col].b_decimal = FRACTIONAL_COMPONENT_TO_INT(B_PARAM(max, min, base_val));
-                kb_config.matrix_scaling_params[row][col].a = A_PARAM(max, min, base_val);
+                float b_param = compute_b_param(max, min, base_val);
+                kb_config.matrix_scaling_params[row][col].b = b_param;
+                kb_config.matrix_scaling_params[row][col].b_fractional_component = fractional_component_as_int(b_param);
+                kb_config.matrix_scaling_params[row][col].a = compute_a_param(b_param, max, min, base_val);
 
                 dprintf("Sensor MIN: %i\n", (int) min);
                 dprintf("Sensor MAX: %i\n", (int) max);
                 dprintf("A: %li\n", kb_config.matrix_scaling_params[row][col].a);
                 dprintf("B: %i\n", kb_config.matrix_scaling_params[row][col].b);
-                dprintf("B decimal: %li / %i\n", kb_config.matrix_scaling_params[row][col].b_decimal, INT_MAX);
+                dprintf("B decimal: %li / %i\n", kb_config.matrix_scaling_params[row][col].b_fractional_component, INT_MAX);
                 dprintf("BASE: %i\n", kb_config.matrix_scaling_params[row][col].base_value);
             }
         }
@@ -91,7 +111,7 @@ void create_lookup_table(void) {
             for (int col = 0; col < MATRIX_COLS; col++) {
                 if (pin_scan_modes[row][col] == ANALOG) {
                     float a = (float)kb_config.matrix_scaling_params[row][col].a;
-                    float b = (float)kb_config.matrix_scaling_params[row][col].b + INT_TO_FRACTIONAL_COMPONENT(kb_config.matrix_scaling_params[row][col].b_decimal);
+                    float b = int_components_to_float(kb_config.matrix_scaling_params[row][col].b, kb_config.matrix_scaling_params[row][col].b_fractional_component);
                     float base = (float)kb_config.matrix_scaling_params[row][col].base_value;
                     for (int adc_val = 0; adc_val < MAX_ADC_READING; adc_val++) {
                         float val = 10.0 * (cbrt(a/((float)adc_val - base)) - b);
