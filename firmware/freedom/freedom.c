@@ -22,6 +22,7 @@ extern uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
 uint16_t min1, max1, min2, max2, min3, max3;
 
 void eeconfig_init_kb(void) {
+    kb_config.calibrated = false;
     kb_config.rapid_trigger = false;
     kb_config.actuation_point_mm = 20;
     kb_config.release_point_mm = 16;
@@ -29,8 +30,8 @@ void eeconfig_init_kb(void) {
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
-                kb_config.matrix_sensor_bounds[row][col].min = 2200;
-                kb_config.matrix_sensor_bounds[row][col].max = 3000;
+                kb_config.matrix_sensor_bounds[row][col].min = 65535;
+                kb_config.matrix_sensor_bounds[row][col].max = 0;
                 kb_config.matrix_scaling_params[row][col].a = 0;
                 kb_config.matrix_scaling_params[row][col].b = 0;
                 kb_config.matrix_scaling_params[row][col].b_fractional_component = 0;
@@ -139,12 +140,27 @@ void create_lookup_table(void) {
     }
 }
 
+bool calibration_successful(void) {
+    bool above_min_range = true;
+    for (int row = 0; row < MATRIX_ROWS; row++) {
+        for (int col = 0; col < MATRIX_COLS; col++) {
+            if (pin_scan_modes[row][col] == ANALOG) {
+                if (kb_config.matrix_sensor_bounds[row][col].max - kb_config.matrix_sensor_bounds[row][col].min < MIN_SENSOR_BOUND_RANGE) {
+                    above_min_range = false;
+                    break;
+                }
+            }
+        }
+    }
+
+    return above_min_range;
+}
 
 void keyboard_post_init_kb(void) {
     debug_enable = true;
+    setPinOutput(PICO_LED);
     eeconfig_read_kb_datablock(&kb_config);
     create_lookup_table();
-    setPinOutput(PICO_LED);
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
@@ -171,13 +187,23 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
             }
         } else {
             // runs once after calibration button is released
-            rgblight_reload_from_eeprom();
-            writePinLow(PICO_LED);
-
             calibrating_sensors = false;
-            compute_sensor_scaling_params();
-            create_lookup_table();
-            eeconfig_update_kb_datablock(&kb_config);
+
+            if(calibration_successful()) {
+                rgblight_reload_from_eeprom();
+                writePinLow(PICO_LED);
+                kb_config.calibrated = true;
+                compute_sensor_scaling_params();
+                create_lookup_table();
+
+                eeconfig_update_kb_datablock(&kb_config);
+            } else {
+                if(kb_config.calibrated) {
+                    //return to state before calibration started
+                    rgblight_reload_from_eeprom();
+                    writePinLow(PICO_LED);
+                }
+            }
         }
         return false;
     case KC_TOGGLE_RAPID_TRIGGER:

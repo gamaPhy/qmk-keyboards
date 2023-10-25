@@ -36,6 +36,7 @@ typedef struct {
 } sensor_scaling_params_t;
 
 typedef struct {
+    bool calibrated;
     bool rapid_trigger;
     uint8_t actuation_point_mm;
     uint8_t release_point_mm;
