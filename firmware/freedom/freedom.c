@@ -49,8 +49,8 @@ void eeconfig_init_kb(void) {
 
 // sensor_max is assumed to be where the key is at X_MAX, ie. completely pressed.
 // sensor_min is assumed to be where the key is at X_MIN, ie. completely released.
-float ratio(sensor_max, sensor_min, base){
-    return ((float)sensor_max - (float)base)/((float)sensor_min - (float)base);
+float ratio(int sensor_max, int sensor_min, int base_val){
+    return ((float)sensor_max - (float)base_val)/((float)sensor_min - (float)base_val);
 }
 
 float compute_b_param(int sensor_max, int sensor_min, int base_val) {
