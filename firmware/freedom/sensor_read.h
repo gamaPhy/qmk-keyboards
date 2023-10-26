@@ -9,4 +9,4 @@
 
 int sensorRead(pin_t pin);
 
-uint32_t oversample(pin_t pin);
+int oversample(pin_t pin);
