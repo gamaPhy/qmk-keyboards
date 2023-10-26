@@ -8,3 +8,5 @@
 #define POLARITY_FLIP true
 
 int sensorRead(pin_t pin);
+
+uint32_t oversample(pin_t pin, int samples);
