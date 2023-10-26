@@ -11,11 +11,6 @@ extern uint16_t     min1, max1, min2, max2, min3, max3;
 
 uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
 
-
-#define OVERSAMPLING_USABLE_POWER 3
-#define OVERSAMPLING_OUTLIERS 3
-#define OVERSAMPLING_TOTAL_SAMPLES (1 << OVERSAMPLING_USABLE_POWER)
-
 void matrix_init_custom(void) {
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
@@ -46,22 +41,13 @@ void insertion_sort(uint16_t v[], int n) {
 bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
     static uint16_t current_extremes[MATRIX_ROWS][MATRIX_COLS] = { 0 };
     static bool     previous_states[MATRIX_ROWS][MATRIX_COLS] = { 0 };
-    static uint16_t samples[OVERSAMPLING_TOTAL_SAMPLES];
-
-    for (int i = 0; i < OVERSAMPLING_TOTAL_SAMPLES; i++) {
-        samples[i] = sensorRead(pin);
-    }
-
-    insertion_sort(samples, OVERSAMPLING_TOTAL_SAMPLES);
 
     uint32_t total = 0;
-    int      count = 0;
-    for (int i = OVERSAMPLING_OUTLIERS; i < OVERSAMPLING_TOTAL_SAMPLES - OVERSAMPLING_OUTLIERS; i++) {
-        total += samples[i];
-        count++;
+    for (int i = 0; i < OVERSAMPLING_TOTAL_SAMPLES; i++) {
+        total += sensorRead(pin);
     }
 
-    uint16_t sensor_value = total / count;
+    uint16_t sensor_value = total / OVERSAMPLING_TOTAL_SAMPLES;
     uint8_t key_x = sensor_lookup_table[sensor_num[row][col]][sensor_value];
 
     if (col == 0) {
