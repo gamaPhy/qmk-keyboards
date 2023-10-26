@@ -25,19 +25,6 @@ void matrix_init_custom(void) {
     }
 }
 
-void insertion_sort(uint16_t v[], int n) {
-    int i, j, x;
-    for (i = 1; i < n; i++) {
-        x = v[i];
-        j = i - 1;
-        while ((j >= 0) && (x < v[j])) {
-            v[j + 1] = v[j];
-            j--;
-        }
-        v[j + 1] = x;
-    }
-}
-
 bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
     static uint16_t current_extremes[MATRIX_ROWS][MATRIX_COLS] = { 0 };
     static bool     previous_states[MATRIX_ROWS][MATRIX_COLS] = { 0 };
