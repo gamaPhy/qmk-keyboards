@@ -8,11 +8,11 @@ int sensorRead(pin_t pin) {
   }
 }
 
-uint32_t oversample(pin_t pin, int samples) {
+uint32_t oversample(pin_t pin) {
     uint32_t total = 0;
-    for (int i = 0; i < samples; i++) {
+    for (int i = 0; i < OVERSAMPLING_TOTAL_SAMPLES; i++) {
         total += sensorRead(pin);
     }
     
-    return total / samples;
+    return total / OVERSAMPLING_TOTAL_SAMPLES;
 }

@@ -42,7 +42,7 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
     static uint16_t current_extremes[MATRIX_ROWS][MATRIX_COLS] = { 0 };
     static bool     previous_states[MATRIX_ROWS][MATRIX_COLS] = { 0 };
 
-    uint16_t sensor_value = oversample(pin, OVERSAMPLING_TOTAL_SAMPLES);
+    uint16_t sensor_value = oversample(pin);
     uint8_t key_x = sensor_lookup_table[sensor_num[row][col]][sensor_value];
 
     if (col == 0) {

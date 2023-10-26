@@ -4,7 +4,7 @@
 
 // Set to maximum number which still results in matrix scan frequency greater than 1000
 // since this means at least 1ms polling frequency
-#define OVERSAMPLING_TOTAL_SAMPLES 36
+#define OVERSAMPLING_TOTAL_SAMPLES 37
 
 #define PIN_SCAN_MODES { \
     { ANALOG,  ANALOG,  ANALOG }, \
