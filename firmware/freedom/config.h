@@ -4,6 +4,11 @@
 
 #include <limits.h>
 
+// A sensor at X_MIN is when the switch is completely released. A sensor at X_MAX is completely pressed.
+#define X_MIN (float)0
+// The greatest displacement in mm that a magnetic switch can be pressed according to Gateron datasheet
+#define X_MAX (float)4.1
+
 #define ADC_RESOLUTION 12
 #define MAX_ADC_READING (1 << ADC_RESOLUTION) - 1
 // the minimum range that sensor bounds should be after calibration

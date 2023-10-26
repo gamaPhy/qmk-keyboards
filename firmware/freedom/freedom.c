@@ -42,11 +42,6 @@ void eeconfig_init_kb(void) {
     eeconfig_update_kb_datablock(&kb_config);
 }
 
-// A sensor at X_MIN is when the switch is completely released. A sensor at X_MAX is completely pressed.
-#define X_MIN (float)0
-// The greatest displacement in mm that a magnetic switch can be pressed according to Gateron datasheet
-#define X_MAX (float)4.1
-
 // sensor_max is assumed to be where the key is at X_MAX, ie. completely pressed.
 // sensor_min is assumed to be where the key is at X_MIN, ie. completely released.
 float ratio(int sensor_max, int sensor_min, int base_val){
