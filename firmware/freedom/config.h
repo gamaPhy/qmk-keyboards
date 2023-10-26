@@ -6,7 +6,7 @@
 
 // A sensor at X_MIN is when the switch is completely released. A sensor at X_MAX is completely pressed.
 #define X_MIN (float)0
-// The greatest displacement in mm that a magnetic switch can be pressed according to Gateron datasheet
+// 4.1mm is the greatest displacement in mm that a magnetic switch can be pressed according to Gateron datasheet
 #define X_MAX (float)4.1
 
 #define ADC_RESOLUTION 12
