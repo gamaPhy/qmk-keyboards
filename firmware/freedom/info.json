@@ -6,13 +6,6 @@
         "firmware_format": "uf2",
         "lto": true
     },
-    "features": {
-        "rgblight": true
-    },
-    "rgblight": {
-        "pin": "GP12",
-        "led_count": 10
-    },
     "processor": "RP2040",
     "bootloader": "rp2040",
     "board": "GENERIC_RP_RP2040"
