@@ -210,13 +210,13 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
         }
         return false;
     case KC_ACTUATION_DEC:
-        if (kb_config.actuation_point_dmm > mm_to_dmm(X_MIN_mm)) {
+        if (kb_config.actuation_point_dmm > 1) {
             --kb_config.actuation_point_dmm;
             eeconfig_update_kb_datablock(&kb_config);
         }
         return false;
     case KC_ACTUATION_INC:
-        if (kb_config.actuation_point_dmm < KEY_MAX_dmm) {
+        if (kb_config.actuation_point_dmm < 40) {
             ++kb_config.actuation_point_dmm;
             eeconfig_update_kb_datablock(&kb_config);
         }
