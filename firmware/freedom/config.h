@@ -4,10 +4,13 @@
 
 #include <limits.h>
 
-// A sensor at X_MIN is when the switch is completely released. A sensor at X_MAX is completely pressed.
-#define X_MIN (float)0
+// A sensor at X_MIN_mm is when the switch is completely released. A sensor at X_MAX_mm is completely pressed.
+#define X_MIN_mm (float)0
 // 4.1mm is the greatest displacement in mm that a magnetic switch can be pressed according to Gateron datasheet
-#define X_MAX (float)4.1
+#define X_MAX_mm (float)4.1
+// The maximum value that a key press can return from the lookup table.
+// Units of dmm (decimillimetre), so a KEY_MAX_dmm value of 40 would mean that the greatest key press to appear in the lookup table is 4mm.
+#define KEY_MAX_dmm 40
 
 #define ADC_RESOLUTION 12
 #define MAX_ADC_READING (1 << ADC_RESOLUTION) - 1

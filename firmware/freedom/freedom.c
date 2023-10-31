@@ -24,9 +24,9 @@ uint16_t min1, max1, min2, max2, min3, max3;
 void eeconfig_init_kb(void) {
     kb_config.calibrated = false;
     kb_config.rapid_trigger = false;
-    kb_config.actuation_point_mm = 20;
-    kb_config.release_point_mm = 16;
-    kb_config.rapid_trigger_sensitivity_mm = 10;
+    kb_config.actuation_point_dmm = 20;
+    kb_config.release_point_dmm = 16;
+    kb_config.rapid_trigger_sensitivity_dmm = 10;
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
@@ -42,18 +42,16 @@ void eeconfig_init_kb(void) {
     eeconfig_update_kb_datablock(&kb_config);
 }
 
-// sensor_max is assumed to be where the key is at X_MAX, ie. completely pressed.
-// sensor_min is assumed to be where the key is at X_MIN, ie. completely released.
 float ratio(int sensor_max, int sensor_min, int base_val){
     return ((float)sensor_max - (float)base_val)/((float)sensor_min - (float)base_val);
 }
 
 float compute_b_param(int sensor_max, int sensor_min, int base_val) {
-    return (float)((X_MAX * cbrt(ratio(sensor_max, sensor_min, base_val)) - X_MIN) / (1.0 - cbrt(ratio(sensor_max, sensor_min, base_val))));
+    return (float)((X_MAX_mm * cbrt(ratio(sensor_max, sensor_min, base_val)) - X_MIN_mm) / (1.0 - cbrt(ratio(sensor_max, sensor_min, base_val))));
 }
 
 float compute_a_param(float b_param, int sensor_max, int sensor_min, int base_val) {
-    return ((float)sensor_min - (float)base_val) * (pow(b_param, 3) + X_MIN);
+    return ((float)sensor_min - (float)base_val) * (pow(b_param, 3) + X_MIN_mm);
 }
 
 // transforms the fractional component of a value to an int 
@@ -92,7 +90,12 @@ void compute_sensor_scaling_params(void){
     }
 }
 
-// Calculates and stores each cell of the lookup table, and pads the rest with either X_MIN or X_MAX depending the side of the array
+// converts mm to dmm
+int mm_to_dmm(float val) {
+    return val * 10;
+}
+
+// Calculates and stores each cell of the lookup table, and pads the rest with either X_MIN_mm or X_MAX_mm depending the side of the array
 // A multiplication of 10 is added to convert mm to mm/10
 void create_lookup_table(void) {
     // memory had been previously allocated for the lookup table
@@ -110,22 +113,21 @@ void create_lookup_table(void) {
                     float b = int_components_to_float(kb_config.matrix_scaling_params[row][col].b, kb_config.matrix_scaling_params[row][col].b_fractional_component);
                     float base = (float)kb_config.matrix_scaling_params[row][col].base_value;
                     for (int adc_val = 0; adc_val < MAX_ADC_READING; adc_val++) {
-                        float val = 10.0 * (cbrt(a/((float)adc_val - base)) - b);
-                        float fractional_val = (val - (float)(int)val);
+                        float val_mm = (cbrt(a/((float)adc_val - base)) - b);
                         int sensor = sensor_num[row][col];
 
-                        sensor_lookup_table[sensor_num[row][col]][adc_val] = val; 
-
-                        if (val < X_MIN) {
-                            sensor_lookup_table[sensor][adc_val] = X_MIN * 10;
-                        } else if (val > X_MAX * 10) {
-                            sensor_lookup_table[sensor][adc_val] = X_MAX * 10;
+                        if (val_mm < X_MIN_mm) {
+                            // Multiplied by 10 to convert mm to dmm
+                            sensor_lookup_table[sensor][adc_val] = mm_to_dmm(X_MIN_mm);
+                        } else if (mm_to_dmm(val_mm) > KEY_MAX_dmm) {
+                            sensor_lookup_table[sensor][adc_val] = KEY_MAX_dmm;
                         } else {
+                            float fractional_val = (val_mm - (float)(int)val_mm);
                             // round int up or down
                             if (fractional_val >= 0.5) {
-                                sensor_lookup_table[sensor][adc_val] = (int)val + 1;
+                                sensor_lookup_table[sensor][adc_val] = mm_to_dmm(val_mm) + 1;
                             } else {
-                                sensor_lookup_table[sensor][adc_val] = (int)val;
+                                sensor_lookup_table[sensor][adc_val] = mm_to_dmm(val_mm);
                             }
                         } 
                     }
@@ -208,14 +210,14 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
         }
         return false;
     case KC_ACTUATION_DEC:
-        if (kb_config.actuation_point_mm > 1) {
-            --kb_config.actuation_point_mm;
+        if (kb_config.actuation_point_dmm > mm_to_dmm(X_MIN_mm)) {
+            --kb_config.actuation_point_dmm;
             eeconfig_update_kb_datablock(&kb_config);
         }
         return false;
     case KC_ACTUATION_INC:
-        if (kb_config.actuation_point_mm < 40) {
-            ++kb_config.actuation_point_mm;
+        if (kb_config.actuation_point_dmm < KEY_MAX_dmm) {
+            ++kb_config.actuation_point_dmm;
             eeconfig_update_kb_datablock(&kb_config);
         }
         return false;
@@ -259,9 +261,9 @@ void matrix_scan_kb(void) {
 #ifdef VIA_ENABLE
 enum via_kb_config_value {
     id_kb_rapid_trigger = 1,
-    id_kb_actuation_point_mm = 2,
-    id_kb_release_point_mm = 3,
-    id_kb_rapid_trigger_sensitivity_mm = 4
+    id_kb_actuation_point_dmm = 2,
+    id_kb_release_point_dmm = 3,
+    id_kb_rapid_trigger_sensitivity_dmm = 4
 };
 
 void kb_config_set_value(uint8_t* data) {
@@ -272,14 +274,14 @@ void kb_config_set_value(uint8_t* data) {
     case id_kb_rapid_trigger:
         kb_config.rapid_trigger = *value_data;
         break;
-    case id_kb_actuation_point_mm:
-        kb_config.actuation_point_mm = *value_data;
+    case id_kb_actuation_point_dmm:
+        kb_config.actuation_point_dmm = *value_data;
         break;
-    case id_kb_release_point_mm:
-        kb_config.release_point_mm = *value_data;
+    case id_kb_release_point_dmm:
+        kb_config.release_point_dmm = *value_data;
         break;
-    case id_kb_rapid_trigger_sensitivity_mm:
-        kb_config.rapid_trigger_sensitivity_mm = *value_data;
+    case id_kb_rapid_trigger_sensitivity_dmm:
+        kb_config.rapid_trigger_sensitivity_dmm = *value_data;
         break;
     }
 }
@@ -293,14 +295,14 @@ void kb_config_get_value(uint8_t* data) {
     case id_kb_rapid_trigger:
         *value_data = kb_config.rapid_trigger;
         break;
-    case id_kb_actuation_point_mm:
-        *value_data = kb_config.actuation_point_mm;
+    case id_kb_actuation_point_dmm:
+        *value_data = kb_config.actuation_point_dmm;
         break;
-    case id_kb_release_point_mm:
-        *value_data = kb_config.release_point_mm;
+    case id_kb_release_point_dmm:
+        *value_data = kb_config.release_point_dmm;
         break;
-    case id_kb_rapid_trigger_sensitivity_mm:
-        *value_data = kb_config.rapid_trigger_sensitivity_mm;
+    case id_kb_rapid_trigger_sensitivity_dmm:
+        *value_data = kb_config.rapid_trigger_sensitivity_dmm;
         break;
     }
 }
