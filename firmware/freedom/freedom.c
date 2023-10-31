@@ -15,8 +15,6 @@ const pin_t direct_pins[MATRIX_ROWS][MATRIX_COLS] = DIRECT_PINS;
 const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS] = PIN_SCAN_MODES;
 const int sensor_num[MATRIX_ROWS][MATRIX_COLS] = SENSOR_NUM;
 
-// There are minimum of 40 (4mm/0.1mm) distances that need to be represented 
-// To get the real distance a key is pressed, must divide the uint8_t value by 10
 extern uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
 
 uint16_t min1, max1, min2, max2, min3, max3;
@@ -98,13 +96,10 @@ void compute_sensor_scaling_params(void){
     }
 }
 
-// converts mm to dmm
 int mm_to_dmm(float val) {
     return val * 10;
 }
 
-// Calculates and stores each cell of the lookup table, and pads the rest with either X_MIN_mm or X_MAX_mm depending the side of the array
-// A multiplication of 10 is added to convert mm to mm/10
 void create_lookup_table(void) {
     // memory had been previously allocated for the lookup table
     if (sensor_lookup_table != NULL) {
@@ -125,7 +120,6 @@ void create_lookup_table(void) {
                         int sensor = sensor_num[row][col];
 
                         if (val_mm < X_MIN_mm) {
-                            // Multiplied by 10 to convert mm to dmm
                             sensor_lookup_table[sensor][adc_val] = mm_to_dmm(X_MIN_mm);
                         } else if (mm_to_dmm(val_mm) > KEY_MAX_dmm) {
                             sensor_lookup_table[sensor][adc_val] = KEY_MAX_dmm;
