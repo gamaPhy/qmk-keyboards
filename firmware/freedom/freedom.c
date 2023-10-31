@@ -36,7 +36,7 @@ void eeconfig_init_kb(void) {
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
-                kb_config.matrix_sensor_bounds[row][col].min = 65535;
+                kb_config.matrix_sensor_bounds[row][col].min = -1;
                 kb_config.matrix_sensor_bounds[row][col].max = 0;
                 kb_config.matrix_scaling_params[row][col].a = 0;
                 kb_config.matrix_scaling_params[row][col].b = 0;
