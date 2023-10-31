@@ -21,6 +21,14 @@ extern uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
 
 uint16_t min1, max1, min2, max2, min3, max3;
 
+void kb_config_save(void) {
+    // prevent multiple keypress glitch
+    if (kb_config.release_point_dmm > kb_config.actuation_point_dmm) {
+        kb_config.release_point_dmm = kb_config.actuation_point_dmm;
+    }
+    eeconfig_update_kb_datablock(&kb_config);
+}
+
 void eeconfig_init_kb(void) {
     kb_config.calibrated = false;
     kb_config.rapid_trigger = false;
@@ -39,7 +47,7 @@ void eeconfig_init_kb(void) {
             }
         }
     }
-    eeconfig_update_kb_datablock(&kb_config);
+    kb_config_save();
 }
 
 float ratio(int sensor_max, int sensor_min, int base_val){
@@ -193,7 +201,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
                 compute_sensor_scaling_params();
                 create_lookup_table();
 
-                eeconfig_update_kb_datablock(&kb_config);
+                kb_config_save();
             } else {
                 if(kb_config.calibrated) {
                     //return to state before calibration started
@@ -206,19 +214,19 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
     case KC_TOGGLE_RAPID_TRIGGER:
         if (record->event.pressed) {
             kb_config.rapid_trigger = !kb_config.rapid_trigger;
-            eeconfig_update_kb_datablock(&kb_config);
+            kb_config_save();
         }
         return false;
     case KC_ACTUATION_DEC:
         if (kb_config.actuation_point_dmm > 1) {
             --kb_config.actuation_point_dmm;
-            eeconfig_update_kb_datablock(&kb_config);
+            kb_config_save();
         }
         return false;
     case KC_ACTUATION_INC:
         if (kb_config.actuation_point_dmm < 40) {
             ++kb_config.actuation_point_dmm;
-            eeconfig_update_kb_datablock(&kb_config);
+            kb_config_save();
         }
         return false;
     }
@@ -307,9 +315,6 @@ void kb_config_get_value(uint8_t* data) {
     }
 }
 
-void kb_config_save(void) {
-    eeconfig_update_kb_datablock(&kb_config);
-}
 
 void via_custom_value_command_kb(uint8_t* data, uint8_t length) {
     // data = [ command_id, channel_id, value_id, value_data ]

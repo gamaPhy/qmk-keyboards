@@ -94,6 +94,7 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
     } else {
         uint16_t release_point_adc = kb_config.release_point_dmm;
         if (previous_states[row][col]) {
+            // key is no longer pressed if it is above, or at the original actuation point
             return previous_states[row][col] = key_x >= release_point_adc;
         } else {
             return previous_states[row][col] = key_x >= actuation_point_adc;
