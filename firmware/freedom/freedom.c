@@ -124,13 +124,7 @@ void create_lookup_table(void) {
                         } else if (mm_to_dmm(val_mm) > KEY_MAX_dmm) {
                             sensor_lookup_table[sensor][adc_val] = KEY_MAX_dmm;
                         } else {
-                            float fractional_val = (val_mm - (float)(int)val_mm);
-                            // round int up or down
-                            if (fractional_val >= 0.5) {
-                                sensor_lookup_table[sensor][adc_val] = mm_to_dmm(val_mm) + 1;
-                            } else {
-                                sensor_lookup_table[sensor][adc_val] = mm_to_dmm(val_mm);
-                            }
+                            sensor_lookup_table[sensor][adc_val] = mm_to_dmm((int)val_mm);
                         } 
                     }
                 }
