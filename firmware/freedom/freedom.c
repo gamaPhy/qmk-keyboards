@@ -134,19 +134,18 @@ void create_lookup_table(void) {
 }
 
 bool calibration_successful(void) {
-    bool above_min_range = true;
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
                 if (kb_config.matrix_sensor_bounds[row][col].max - kb_config.matrix_sensor_bounds[row][col].min < MIN_SENSOR_BOUND_RANGE) {
-                    above_min_range = false;
-                    break;
+                    // the sensors were not pressed down a sufficient amount
+                    return false;
                 }
             }
         }
     }
 
-    return above_min_range;
+    return true;
 }
 
 void keyboard_post_init_kb(void) {
