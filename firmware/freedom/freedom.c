@@ -57,7 +57,7 @@ float compute_b_param(int sensor_max, int sensor_min, int base_val) {
 }
 
 float compute_a_param(float b_param, int sensor_max, int sensor_min, int base_val) {
-    return ((float)sensor_min - (float)base_val) * (pow(b_param, 3) + X_MIN_mm);
+    return ((float)sensor_min - (float)base_val) * (float)pow(b_param + X_MIN_mm, 3);
 }
 
 // transforms the fractional component of a value to an int 
@@ -71,13 +71,36 @@ float int_components_to_float(int val, int fractional_component_as_int){
     return val + fractional_component_as_float;
 }
 
-// Computes and stores the `a` and `b` parameters of the best-fit scaling equation. 
-void compute_sensor_scaling_params(void){
+// Guesses what board is in use and returns the corresponding base offset value
+// Hardcoded for SLSS49E sensors
+int determine_sensor_base_offset(void) {
+    int min_total = 0;
+    int count = 0;
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
-                int min = kb_config.matrix_sensor_bounds[row][col].min;
+                min_total += kb_config.matrix_sensor_bounds[row][col].min;
+                count++;
+            }
+        }
+    }
+
+    const int min_avg = min_total / count;
+    if (min_avg > 1500) {
+        return PICO_SENSOR_BASE_OFFSET;
+    } 
+    return SENSOR_BASE_OFFSET_4V4_2V5;
+}
+
+// Computes and stores the `a` and `b` parameters of the best-fit scaling equation. 
+void compute_sensor_scaling_params(void){
+    const int sensor_base_offset = determine_sensor_base_offset();
+    for (int row = 0; row < MATRIX_ROWS; row++) {
+        for (int col = 0; col < MATRIX_COLS; col++) {
+            if (pin_scan_modes[row][col] == ANALOG) {
                 int max = kb_config.matrix_sensor_bounds[row][col].max;
+                int min = kb_config.matrix_sensor_bounds[row][col].min;
+                kb_config.matrix_scaling_params[row][col].base_value = min - sensor_base_offset; 
                 int base_val = kb_config.matrix_scaling_params[row][col].base_value;
 
                 float b_param = compute_b_param(max, min, base_val);
@@ -97,7 +120,7 @@ void compute_sensor_scaling_params(void){
 }
 
 int mm_to_dmm(float val) {
-    return val * 10;
+    return val * 10.0;
 }
 
 void create_lookup_table(void) {
@@ -124,7 +147,7 @@ void create_lookup_table(void) {
                         } else if (mm_to_dmm(val_mm) > KEY_MAX_dmm) {
                             sensor_lookup_table[sensor][adc_val] = KEY_MAX_dmm;
                         } else {
-                            sensor_lookup_table[sensor][adc_val] = mm_to_dmm((int)val_mm);
+                            sensor_lookup_table[sensor][adc_val] = mm_to_dmm(val_mm);
                         } 
                     }
                 }
@@ -144,11 +167,17 @@ bool calibration_successful(void) {
             }
         }
     }
-
     return true;
 }
 
-void keyboard_post_init_kb(void) {
+void matrix_init_user(void) {
+    // mimic functionality of bootmagic
+    if (!readPin(direct_pins[BOOT_ROW][BOOT_COL])) {
+        reset_keyboard();
+    }
+}
+
+void keyboard_post_init_user(void) {
     debug_enable = true;
     setPinOutput(PICO_LED);
     eeconfig_read_kb_datablock(&kb_config);
@@ -164,7 +193,6 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
     case KC_CALIBRATE:
         if (record->event.pressed) {
             rgblight_sethsv_noeeprom(HSV_BLACK);
-            // For Pico users, notify of calibration by turning on-board LED on.
             writePinHigh(PICO_LED);
 
             // this will disable analog keys while calibrating
