@@ -29,7 +29,7 @@ void kb_config_save(void) {
 
 void eeconfig_init_kb(void) {
     kb_config.calibrated = false;
-    kb_config.rapid_trigger = false;
+    kb_config.rapid_trigger = true;
     kb_config.actuation_point_dmm = 20;
     kb_config.release_point_dmm = 16;
     kb_config.rapid_trigger_sensitivity_dmm = 10;
