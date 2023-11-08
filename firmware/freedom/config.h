@@ -27,8 +27,7 @@
 #define MIN_SENSOR_BOUND_RANGE 300
 
 // corresponds to size of kb_config_t in freedom.h
-// as of QMK commit 713427c, this value can be determined by setting it to something higher than you know kb_config_t will be, then reading the actual block size returned with QMK's error message, and use that value.
-#define EECONFIG_KB_DATA_SIZE 128 
+#define EECONFIG_KB_DATA_SIZE 124 
 #define DEBUG_MATRIX_SCAN_RATE
 
 #define RGBLIGHT_EFFECT_RAINBOW_SWIRL

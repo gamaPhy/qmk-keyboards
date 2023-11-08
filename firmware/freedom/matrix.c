@@ -30,6 +30,7 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
     static bool     previous_states[MATRIX_ROWS][MATRIX_COLS] = { 0 };
 
     uint16_t sensor_value = oversample(pin);
+    // distance key is pressed down
     uint8_t key_x = sensor_lookup_table[sensor_num[row][col]][sensor_value];
 
     if (col == 0) {
@@ -92,10 +93,9 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
             return previous_states[row][col] = false;
         }
     } else {
-        uint16_t release_point_adc = kb_config.release_point_dmm;
         if (previous_states[row][col]) {
-            // key is no longer pressed if it is above, or at the original actuation point
-            return previous_states[row][col] = key_x >= release_point_adc;
+            // don't release until switch is above the original acutation point, preventing multipress bug
+            return previous_states[row][col] = key_x >= actuation_point_adc - 2;
         } else {
             return previous_states[row][col] = key_x >= actuation_point_adc;
         }

@@ -20,19 +20,14 @@ extern uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
 uint16_t min1, max1, min2, max2, min3, max3;
 
 void kb_config_save(void) {
-    // prevent multiple keypress glitch
-    if (kb_config.release_point_dmm > kb_config.actuation_point_dmm) {
-        kb_config.release_point_dmm = kb_config.actuation_point_dmm;
-    }
     eeconfig_update_kb_datablock(&kb_config);
 }
 
 void eeconfig_init_kb(void) {
     kb_config.calibrated = false;
     kb_config.rapid_trigger = false;
-    kb_config.actuation_point_dmm = 20;
-    kb_config.release_point_dmm = 16;
-    kb_config.rapid_trigger_sensitivity_dmm = 10;
+    kb_config.actuation_point_dmm = 8;
+    kb_config.rapid_trigger_sensitivity_dmm = 2;
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
@@ -300,9 +295,6 @@ void kb_config_set_value(uint8_t* data) {
     case id_kb_actuation_point_dmm:
         kb_config.actuation_point_dmm = *value_data;
         break;
-    case id_kb_release_point_dmm:
-        kb_config.release_point_dmm = *value_data;
-        break;
     case id_kb_rapid_trigger_sensitivity_dmm:
         kb_config.rapid_trigger_sensitivity_dmm = *value_data;
         break;
@@ -320,9 +312,6 @@ void kb_config_get_value(uint8_t* data) {
         break;
     case id_kb_actuation_point_dmm:
         *value_data = kb_config.actuation_point_dmm;
-        break;
-    case id_kb_release_point_dmm:
-        *value_data = kb_config.release_point_dmm;
         break;
     case id_kb_rapid_trigger_sensitivity_dmm:
         *value_data = kb_config.rapid_trigger_sensitivity_dmm;
