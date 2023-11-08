@@ -228,7 +228,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
         }
         return false;
     case KC_ACTUATION_DEC:
-        if (kb_config.actuation_point_dmm > 1) {
+        if (kb_config.actuation_point_dmm > 2) {
             --kb_config.actuation_point_dmm;
             kb_config_save();
         }
