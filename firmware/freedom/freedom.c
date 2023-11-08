@@ -280,8 +280,7 @@ void matrix_scan_kb(void) {
 enum via_kb_config_value {
     id_kb_rapid_trigger = 1,
     id_kb_actuation_point_dmm = 2,
-    id_kb_release_point_dmm = 3,
-    id_kb_rapid_trigger_sensitivity_dmm = 4
+    id_kb_rapid_trigger_sensitivity_dmm = 3
 };
 
 void kb_config_set_value(uint8_t* data) {
