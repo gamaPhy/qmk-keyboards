@@ -58,6 +58,16 @@
       "name": "Inc (+)\nActuate\nDist",
       "title": "Increase actuation distance by 0.1mm (increases the key travel needed to actuate)",
       "shortName": "IncActuateDist"
+    },
+    {
+      "name": "(-) Sens\nRapid\nTrigger",
+      "title": "Decrease Rapid Trigger sensitivity by 0.1mm (decreases the key travel needed to press the key again)",
+      "shortName": "DecRTSense"
+    },
+    {
+      "name": "(+) Sens\nRapid\nTrigger",
+      "title": "Increase Rapid Trigger sensitivity distance by 0.1mm (decreases the key travel needed to press the key again)",
+      "shortName": "IncRTSens"
     }
   ],
   "layouts": {

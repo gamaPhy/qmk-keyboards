@@ -232,6 +232,18 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
             kb_config_save();
         }
         return false;
+    case KC_RAPID_TRIGGER_SENS_DEC:
+        if (kb_config.rapid_trigger_sensitivity_dmm > 1) {
+            --kb_config.rapid_trigger_sensitivity_dmm;
+            kb_config_save();
+        }
+        return false;
+    case KC_RAPID_TRIGGER_SENS_INC:
+        if (kb_config.rapid_trigger_sensitivity_dmm < 40) {
+            ++kb_config.rapid_trigger_sensitivity_dmm;
+            kb_config_save();
+        }
+        return false;
     }
 
     return true;
