@@ -65,12 +65,12 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
             // while the key is pressed, keep track of the lowest point of the key in current_extremes.
             // if the key is raised above the lowest point by sensitivity_delta, release the key.
             uint16_t release_threshhold = current_extremes[row][col] - sensitivity_delta;
-            if (key_x < release_threshhold) {
+            if (key_x <= release_threshhold) {
                 current_extremes[row][col] = key_x;
                 return previous_states[row][col] = false;
             }
             // if the key is pressed down farther, release_threshhold will be lower in subsequent scans
-            if (key_x > current_extremes[row][col]) {
+            if (key_x >= current_extremes[row][col]) {
                 current_extremes[row][col] = key_x;
             }
             // the key did not go above the release_threshhold, so it stays pressed
@@ -80,12 +80,12 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
             // if the key is pressed below the highest point by sensitivity_delta, actuate the key.
             // however, the key must also be past the main actuation point
             uint16_t actuate_threshhold = current_extremes[row][col] + sensitivity_delta;
-            if (key_x > actuate_threshhold && key_x > actuation_point_adc) {
+            if (key_x >= actuate_threshhold && key_x >= actuation_point_adc) {
                 current_extremes[row][col] = key_x;
                 return previous_states[row][col] = true;
             }
             // if the key is raised farther, actuate_threshhold will be higher in subsequent scans
-            if (key_x < current_extremes[row][col]) {
+            if (key_x <= current_extremes[row][col]) {
                 current_extremes[row][col] = key_x;
             }
             // the key did not go below the actuate_threshhold, so it stays released
