@@ -57,10 +57,10 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
         }
     }
 
-    uint16_t actuation_point_adc = kb_config.actuation_point_dmm;
+    uint16_t actuation_point_adc = kb_config.actuation_point_dmm * LOOKUP_TABLE_MULTIPLIER;
 
     if (kb_config.rapid_trigger) {
-        uint16_t sensitivity_delta = kb_config.rapid_trigger_sensitivity_dmm;
+        uint16_t sensitivity_delta = kb_config.rapid_trigger_sensitivity_dmm * LOOKUP_TABLE_MULTIPLIER;
         if (previous_states[row][col]) {
             // while the key is pressed, keep track of the lowest point of the key in current_extremes.
             // if the key is raised above the lowest point by sensitivity_delta, release the key.
@@ -92,10 +92,9 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
             return previous_states[row][col] = false;
         }
     } else {
-        uint16_t release_point_adc = kb_config.release_point_dmm;
         if (previous_states[row][col]) {
-            // key is no longer pressed if it is above, or at the original actuation point
-            return previous_states[row][col] = key_x >= release_point_adc;
+            // don't release until switch is above the original acutation point, preventing multipress bug
+            return previous_states[row][col] = key_x > actuation_point_adc - 2;
         } else {
             return previous_states[row][col] = key_x >= actuation_point_adc;
         }

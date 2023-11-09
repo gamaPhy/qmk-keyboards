@@ -20,19 +20,14 @@ extern uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
 uint16_t min1, max1, min2, max2, min3, max3;
 
 void kb_config_save(void) {
-    // prevent multiple keypress glitch
-    if (kb_config.release_point_dmm > kb_config.actuation_point_dmm) {
-        kb_config.release_point_dmm = kb_config.actuation_point_dmm;
-    }
     eeconfig_update_kb_datablock(&kb_config);
 }
 
 void eeconfig_init_kb(void) {
     kb_config.calibrated = false;
     kb_config.rapid_trigger = true;
-    kb_config.actuation_point_dmm = 20;
-    kb_config.release_point_dmm = 16;
-    kb_config.rapid_trigger_sensitivity_dmm = 10;
+    kb_config.actuation_point_dmm = 8;
+    kb_config.rapid_trigger_sensitivity_dmm = 2;
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
@@ -119,8 +114,8 @@ void compute_sensor_scaling_params(void){
     }
 }
 
-int mm_to_dmm(float val) {
-    return val * 10.0;
+int mm_to_lookup_table_val(float val) {
+    return val * LOOKUP_TABLE_MULTIPLIER * 10.0;
 }
 
 void create_lookup_table(void) {
@@ -143,11 +138,11 @@ void create_lookup_table(void) {
                         int sensor = sensor_num[row][col];
 
                         if (val_mm < X_MIN_mm) {
-                            sensor_lookup_table[sensor][adc_val] = mm_to_dmm(X_MIN_mm);
-                        } else if (mm_to_dmm(val_mm) > KEY_MAX_dmm) {
-                            sensor_lookup_table[sensor][adc_val] = KEY_MAX_dmm;
+                            sensor_lookup_table[sensor][adc_val] = mm_to_lookup_table_val(X_MIN_mm);
+                        } else if (mm_to_lookup_table_val(val_mm) > KEY_MAX_dmm * LOOKUP_TABLE_MULTIPLIER) {
+                            sensor_lookup_table[sensor][adc_val] = KEY_MAX_dmm * LOOKUP_TABLE_MULTIPLIER;
                         } else {
-                            sensor_lookup_table[sensor][adc_val] = mm_to_dmm(val_mm);
+                            sensor_lookup_table[sensor][adc_val] = mm_to_lookup_table_val(val_mm);
                         } 
                     }
                 }
@@ -168,13 +163,6 @@ bool calibration_successful(void) {
         }
     }
     return true;
-}
-
-void matrix_init_user(void) {
-    // mimic functionality of bootmagic
-    if (!readPin(direct_pins[BOOT_ROW][BOOT_COL])) {
-        reset_keyboard();
-    }
 }
 
 void keyboard_post_init_user(void) {
@@ -285,8 +273,7 @@ void matrix_scan_kb(void) {
 enum via_kb_config_value {
     id_kb_rapid_trigger = 1,
     id_kb_actuation_point_dmm = 2,
-    id_kb_release_point_dmm = 3,
-    id_kb_rapid_trigger_sensitivity_dmm = 4
+    id_kb_rapid_trigger_sensitivity_dmm = 3
 };
 
 void kb_config_set_value(uint8_t* data) {
@@ -299,9 +286,6 @@ void kb_config_set_value(uint8_t* data) {
         break;
     case id_kb_actuation_point_dmm:
         kb_config.actuation_point_dmm = *value_data;
-        break;
-    case id_kb_release_point_dmm:
-        kb_config.release_point_dmm = *value_data;
         break;
     case id_kb_rapid_trigger_sensitivity_dmm:
         kb_config.rapid_trigger_sensitivity_dmm = *value_data;
@@ -320,9 +304,6 @@ void kb_config_get_value(uint8_t* data) {
         break;
     case id_kb_actuation_point_dmm:
         *value_data = kb_config.actuation_point_dmm;
-        break;
-    case id_kb_release_point_dmm:
-        *value_data = kb_config.release_point_dmm;
         break;
     case id_kb_rapid_trigger_sensitivity_dmm:
         *value_data = kb_config.rapid_trigger_sensitivity_dmm;
