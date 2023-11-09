@@ -114,8 +114,8 @@ void compute_sensor_scaling_params(void){
     }
 }
 
-int mm_to_dmm(float val) {
-    return val * 10.0;
+int mm_to_lookup_table_val(float val) {
+    return val * LOOKUP_TABLE_MULTIPLIER * 10.0;
 }
 
 void create_lookup_table(void) {
@@ -138,11 +138,11 @@ void create_lookup_table(void) {
                         int sensor = sensor_num[row][col];
 
                         if (val_mm < X_MIN_mm) {
-                            sensor_lookup_table[sensor][adc_val] = mm_to_dmm(X_MIN_mm);
-                        } else if (mm_to_dmm(val_mm) > KEY_MAX_dmm) {
-                            sensor_lookup_table[sensor][adc_val] = KEY_MAX_dmm;
+                            sensor_lookup_table[sensor][adc_val] = mm_to_lookup_table_val(X_MIN_mm);
+                        } else if (mm_to_lookup_table_val(val_mm) > KEY_MAX_dmm * LOOKUP_TABLE_MULTIPLIER) {
+                            sensor_lookup_table[sensor][adc_val] = KEY_MAX_dmm * LOOKUP_TABLE_MULTIPLIER;
                         } else {
-                            sensor_lookup_table[sensor][adc_val] = mm_to_dmm(val_mm);
+                            sensor_lookup_table[sensor][adc_val] = mm_to_lookup_table_val(val_mm);
                         } 
                     }
                 }
@@ -163,13 +163,6 @@ bool calibration_successful(void) {
         }
     }
     return true;
-}
-
-void matrix_init_user(void) {
-    // mimic functionality of bootmagic
-    if (!readPin(direct_pins[BOOT_ROW][BOOT_COL])) {
-        reset_keyboard();
-    }
 }
 
 void keyboard_post_init_user(void) {
@@ -228,7 +221,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
         }
         return false;
     case KC_ACTUATION_DEC:
-        if (kb_config.actuation_point_dmm > 2) {
+        if (kb_config.actuation_point_dmm > 1) {
             --kb_config.actuation_point_dmm;
             kb_config_save();
         }

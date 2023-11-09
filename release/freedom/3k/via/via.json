@@ -23,7 +23,7 @@
             {
               "label": "Actuation distance",
               "type": "range",
-              "options": [2, 40],
+              "options": [1, 40],
               "content": ["id_kb_actuation_point_mm", 0, 2]
             },
             {

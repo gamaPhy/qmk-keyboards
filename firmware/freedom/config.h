@@ -20,6 +20,10 @@
 // The maximum value that a key press can return from the lookup table.
 // Units of dmm (decimillimetre), so a KEY_MAX_dmm value of 40 would mean that the greatest key press to appear in the lookup table is 4mm.
 #define KEY_MAX_dmm 40
+// The amount that the calculated lookup table values are multiplied by. 
+// Used to create steps between each dmm value in the lookup table. 
+// The range of values in the lookup table is LOOKUP_TABLE_MULTIPLER * KEY_MAX_dmm
+#define LOOKUP_TABLE_MULTIPLIER 2
 
 #define ADC_RESOLUTION 12
 #define MAX_ADC_READING (1 << ADC_RESOLUTION) - 1
