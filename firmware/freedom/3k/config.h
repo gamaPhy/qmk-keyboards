@@ -7,7 +7,7 @@
 #define BOOTMAGIC_LITE_COLUMN 0
 
 // Set to maximum number which still results in matrix scan frequency greater than 500
-// since this means at least 2ms matrix scan frequency
+// since this means at most 2ms matrix scan frequency
 #define OVERSAMPLING_TOTAL_SAMPLES 70
 
 #define PIN_SCAN_MODES { \
