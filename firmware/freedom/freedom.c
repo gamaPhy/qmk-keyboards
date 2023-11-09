@@ -26,7 +26,7 @@ void kb_config_save(void) {
 void eeconfig_init_kb(void) {
     kb_config.calibrated = false;
     kb_config.rapid_trigger = true;
-    kb_config.actuation_point_dmm = 8;
+    kb_config.actuation_point_dmm = 6;
     kb_config.rapid_trigger_sensitivity_dmm = 2;
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
