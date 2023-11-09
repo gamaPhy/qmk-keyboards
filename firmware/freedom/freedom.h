@@ -10,8 +10,6 @@ enum custom_keycodes {
     KC_TOGGLE_RAPID_TRIGGER,
     KC_ACTUATION_DEC,
     KC_ACTUATION_INC,
-    KC_RAPID_TRIGGER_SENS_DEC,
-    KC_RAPID_TRIGGER_SENS_INC,
     NEW_QK_KB
 };
 
@@ -41,7 +39,8 @@ typedef struct {
     bool calibrated;
     bool rapid_trigger;
     uint8_t actuation_point_dmm;
-    uint8_t rapid_trigger_sensitivity_dmm;
+    uint8_t rapid_trigger_press_sensitivity_dmm;
+    uint8_t rapid_trigger_release_sensitivity_dmm;
     sensor_bounds_t matrix_sensor_bounds[MATRIX_ROWS][MATRIX_COLS];
     sensor_scaling_params_t matrix_scaling_params[MATRIX_ROWS][MATRIX_COLS];
 } kb_config_t;

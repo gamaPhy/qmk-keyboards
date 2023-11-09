@@ -57,35 +57,47 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
         }
     }
 
-    uint16_t actuation_point_adc = kb_config.actuation_point_dmm * LOOKUP_TABLE_MULTIPLIER;
+    uint16_t actuation_point = kb_config.actuation_point_dmm * LOOKUP_TABLE_MULTIPLIER;
+    // don't release until switch is above the original acutation point, preventing multipress bug.
+    // amount subtracted is dependent on how many steps are between each dmm value in the lookup table
+    uint16_t release_point = actuation_point - 2;
 
     if (kb_config.rapid_trigger) {
-        uint16_t sensitivity_delta = kb_config.rapid_trigger_sensitivity_dmm * LOOKUP_TABLE_MULTIPLIER;
         if (previous_states[row][col]) {
             // while the key is pressed, keep track of the lowest point of the key in current_extremes.
-            // if the key is raised above the lowest point by sensitivity_delta, release the key.
-            uint16_t release_threshhold = current_extremes[row][col] - sensitivity_delta;
-            if (key_x <= release_threshhold) {
+            // if the key is raised above the lowest point by sensitivity_delta, 
+            // or above the main release point, release the key.
+            int release_threshhold = current_extremes[row][col] - kb_config.rapid_trigger_release_sensitivity_dmm * LOOKUP_TABLE_MULTIPLIER;
+            if (key_x <= release_threshhold || key_x <= release_point) {
                 current_extremes[row][col] = key_x;
                 return previous_states[row][col] = false;
             }
             // if the key is pressed down farther, release_threshhold will be lower in subsequent scans
-            if (key_x >= current_extremes[row][col]) {
+            if (key_x > current_extremes[row][col]) {
                 current_extremes[row][col] = key_x;
             }
             // the key did not go above the release_threshhold, so it stays pressed
             return previous_states[row][col] = true;
         } else {
+            // If the key is above the main release point, only consider the main actuation point,
+            // and ignore the actuation threshhold associated with rapid trigger
+            if (current_extremes[row][col] <= release_point) {
+                if (key_x >= actuation_point) {
+                    current_extremes[row][col] = key_x;
+                    return previous_states[row][col] = true;
+                }
+            }
+
             // while the key is released, keep track of the highest point of the key in current_extremes.
             // if the key is pressed below the highest point by sensitivity_delta, actuate the key.
             // however, the key must also be past the main actuation point
-            uint16_t actuate_threshhold = current_extremes[row][col] + sensitivity_delta;
-            if (key_x >= actuate_threshhold && key_x >= actuation_point_adc) {
+            uint16_t actuate_threshhold = current_extremes[row][col] + kb_config.rapid_trigger_press_sensitivity_dmm * LOOKUP_TABLE_MULTIPLIER;
+            if (key_x >= actuate_threshhold && key_x >= actuation_point) {
                 current_extremes[row][col] = key_x;
                 return previous_states[row][col] = true;
             }
             // if the key is raised farther, actuate_threshhold will be higher in subsequent scans
-            if (key_x <= current_extremes[row][col]) {
+            if (key_x < current_extremes[row][col]) {
                 current_extremes[row][col] = key_x;
             }
             // the key did not go below the actuate_threshhold, so it stays released
@@ -93,10 +105,9 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
         }
     } else {
         if (previous_states[row][col]) {
-            // don't release until switch is above the original acutation point, preventing multipress bug
-            return previous_states[row][col] = key_x > actuation_point_adc - 2;
+            return previous_states[row][col] = key_x > release_point;
         } else {
-            return previous_states[row][col] = key_x >= actuation_point_adc;
+            return previous_states[row][col] = key_x >= actuation_point;
         }
     }
 }

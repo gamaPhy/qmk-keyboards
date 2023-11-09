@@ -26,8 +26,9 @@ void kb_config_save(void) {
 void eeconfig_init_kb(void) {
     kb_config.calibrated = false;
     kb_config.rapid_trigger = true;
-    kb_config.actuation_point_dmm = 8;
-    kb_config.rapid_trigger_sensitivity_dmm = 3;
+    kb_config.actuation_point_dmm = 6;
+    kb_config.rapid_trigger_press_sensitivity_dmm = 2;
+    kb_config.rapid_trigger_release_sensitivity_dmm = 5;
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
@@ -232,18 +233,6 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
             kb_config_save();
         }
         return false;
-    case KC_RAPID_TRIGGER_SENS_DEC:
-        if (kb_config.rapid_trigger_sensitivity_dmm > 1) {
-            --kb_config.rapid_trigger_sensitivity_dmm;
-            kb_config_save();
-        }
-        return false;
-    case KC_RAPID_TRIGGER_SENS_INC:
-        if (kb_config.rapid_trigger_sensitivity_dmm < 40) {
-            ++kb_config.rapid_trigger_sensitivity_dmm;
-            kb_config_save();
-        }
-        return false;
     }
 
     return true;
@@ -285,7 +274,8 @@ void matrix_scan_kb(void) {
 enum via_kb_config_value {
     id_kb_rapid_trigger = 1,
     id_kb_actuation_point_dmm = 2,
-    id_kb_rapid_trigger_sensitivity_dmm = 3
+    id_kb_rapid_trigger_press_sensitivity_dmm = 3,
+    id_kb_rapid_trigger_release_sensitivity_dmm = 4
 };
 
 void kb_config_set_value(uint8_t* data) {
@@ -299,8 +289,11 @@ void kb_config_set_value(uint8_t* data) {
     case id_kb_actuation_point_dmm:
         kb_config.actuation_point_dmm = *value_data;
         break;
-    case id_kb_rapid_trigger_sensitivity_dmm:
-        kb_config.rapid_trigger_sensitivity_dmm = *value_data;
+    case id_kb_rapid_trigger_press_sensitivity_dmm:
+        kb_config.rapid_trigger_press_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_rapid_trigger_release_sensitivity_dmm:
+        kb_config.rapid_trigger_release_sensitivity_dmm = *value_data;
         break;
     }
 }
@@ -317,8 +310,11 @@ void kb_config_get_value(uint8_t* data) {
     case id_kb_actuation_point_dmm:
         *value_data = kb_config.actuation_point_dmm;
         break;
-    case id_kb_rapid_trigger_sensitivity_dmm:
-        *value_data = kb_config.rapid_trigger_sensitivity_dmm;
+    case id_kb_rapid_trigger_press_sensitivity_dmm:
+        *value_data = kb_config.rapid_trigger_press_sensitivity_dmm;
+        break;
+    case id_kb_rapid_trigger_release_sensitivity_dmm:
+        *value_data = kb_config.rapid_trigger_release_sensitivity_dmm;
         break;
     }
 }

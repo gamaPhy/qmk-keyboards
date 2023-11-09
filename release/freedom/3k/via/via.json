@@ -24,14 +24,21 @@
               "label": "Actuation distance",
               "type": "range",
               "options": [1, 40],
-              "content": ["id_kb_actuation_point_mm", 0, 2]
+              "content": ["id_kb_actuation_point_dmm", 0, 2]
             },
             {
               "showIf": "{id_kb_rapid_trigger} == 1",
-              "label": "Rapid trigger sensitivity",
+              "label": "Press sensitivity",
               "type": "range",
               "options": [1, 40],
-              "content": ["id_kb_rapid_trigger_sensitivity_mm", 0, 3]
+              "content": ["id_kb_rapid_trigger_press_sensitivity_dmm", 0, 3]
+            },
+            {
+              "showIf": "{id_kb_rapid_trigger} == 1",
+              "label": "Release sensitivity",
+              "type": "range",
+              "options": [1, 40],
+              "content": ["id_kb_rapid_trigger_release_sensitivity_dmm", 0, 4]
             }
           ]
         }
@@ -58,16 +65,6 @@
       "name": "Inc (+)\nActuate\nDist",
       "title": "Increase actuation distance by 0.1mm (increases the key travel needed to actuate)",
       "shortName": "IncActuateDist"
-    },
-    {
-      "name": "(-) Sens\nRapid\nTrigger",
-      "title": "Decrease Rapid Trigger sensitivity by 0.1mm (decreases the key travel needed to press the key again)",
-      "shortName": "DecRTSense"
-    },
-    {
-      "name": "(+) Sens\nRapid\nTrigger",
-      "title": "Increase Rapid Trigger sensitivity distance by 0.1mm (decreases the key travel needed to press the key again)",
-      "shortName": "IncRTSens"
     }
   ],
   "layouts": {
