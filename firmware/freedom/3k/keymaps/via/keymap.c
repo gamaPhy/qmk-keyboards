@@ -15,7 +15,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [1] = LAYOUT(
      // RGB_VAD = Brightness decrease
      // RGB_VAI = Brightness increase
-        KC_NO,   RGB_VAD,   RGB_VAI,
+        KC_BSPC,   RGB_VAD,   RGB_VAI,
         QK_BOOT, KC_NO, RGB_TOG
     )
 };
