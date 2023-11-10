@@ -10,6 +10,12 @@ enum layers {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_OSU] = LAYOUT(
         KC_Z,   KC_X,         KC_C,
-        KC_ESC, RGB_TOG, KC_CALIBRATE
+        KC_ESC, MO(1), KC_CALIBRATE
+    ),
+    [1] = LAYOUT(
+     // RGB_VAD = Brightness decrease
+     // RGB_VAI = Brightness increase
+        KC_NO,   RGB_VAD,   RGB_VAI,
+        QK_BOOT, KC_NO, RGB_TOG
     )
 };
