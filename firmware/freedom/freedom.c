@@ -19,6 +19,22 @@ extern uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
 
 uint16_t min1, max1, min2, max2, min3, max3;
 
+// Our bootmagic implementation does not clear EEPROM,
+// primarily so that hall effect sensor calibration does not get cleared.
+// This means that if you want to clear EEPROM, it must be done manually.
+// For rp2040, this requires loading `flash_nuke.uf2` which can be found in our directory, or at:
+// https://www.raspberrypi.com/documentation/microcontrollers/raspberry-pi-pico.html#resetting-flash-memory
+void bootmagic_lite(void) {
+    matrix_scan();
+    wait_ms(30);
+    matrix_scan();
+
+    if (matrix_get_row(BOOTMAGIC_LITE_ROW) & (1 << BOOTMAGIC_LITE_COLUMN)) {
+      // Jump to bootloader.
+      bootloader_jump();
+    }
+}
+
 void kb_config_save(void) {
     eeconfig_update_kb_datablock(&kb_config);
 }
