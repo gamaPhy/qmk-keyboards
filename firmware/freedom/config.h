@@ -8,8 +8,8 @@
 #define X_MIN_mm (float)0
 // 4.1mm is the greatest displacement in mm that a magnetic switch can be pressed according to Gateron datasheet
 #define X_MAX_mm (float)4.1
-// The maximum value that a key's press distance is measured.
-// Units of dmm (decimillimetre), so a KEY_MAX_dmm value of 40 would mean that any key distance measured beyond 4mm would be considered 4mm 
+// The maximum value that a key press can return from the lookup table.
+// Units of dmm (decimillimetre), so a KEY_MAX_dmm value of 40 would mean that the greatest key press to appear in the lookup table is 4mm.
 #define KEY_MAX_dmm 40
 // The amount that the calculated lookup table values are multiplied by. 
 // Used to create steps between each dmm value in the lookup table. 
