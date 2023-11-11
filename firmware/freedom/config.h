@@ -4,21 +4,12 @@
 
 #include <limits.h>
 
-// A constant that makes sensor scaling equation work good enough without requiring manual calibration of base values.
-// More robust way of calibrating base values of sensors may be needed in the future.
-// Dependent on HE sensor, VCC of HE sensors, and ADC_VREF.
-// THIS_CONSTANT = sensor_min_reading - sensor_base_val
-// Sensor: SLSS49E, 4.4V VCC, 2.5V ADC_VREF
-#define SENSOR_BASE_OFFSET_4V4_2V5 275
-// Sensor: SLSS49E, 3.3V VCC, 3.3V ADC_VREF
-#define PICO_SENSOR_BASE_OFFSET 175
-
 // A sensor at X_MIN_mm is when the switch is completely released. A sensor at X_MAX_mm is completely pressed.
 #define X_MIN_mm (float)0
 // 4.1mm is the greatest displacement in mm that a magnetic switch can be pressed according to Gateron datasheet
 #define X_MAX_mm (float)4.1
-// The maximum value that a key press can return from the lookup table.
-// Units of dmm (decimillimetre), so a KEY_MAX_dmm value of 40 would mean that the greatest key press to appear in the lookup table is 4mm.
+// The maximum value that a key's press distance is measured.
+// Units of dmm (decimillimetre), so a KEY_MAX_dmm value of 40 would mean that any key distance measured beyond 4mm would be considered 4mm 
 #define KEY_MAX_dmm 40
 // The amount that the calculated lookup table values are multiplied by. 
 // Used to create steps between each dmm value in the lookup table. 
