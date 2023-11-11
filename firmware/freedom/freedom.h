@@ -30,6 +30,7 @@ typedef struct {
 typedef struct {
     int32_t a;
     int16_t b;
+    // QMK can't store `float`s in EEPROM, so fractional values have to be decomposed into `int`s, then reconstructed upon use
     // The actual decimal value of `b` is derived by doing `(float)b_fractional_component / (float)INT_MAX`
     int32_t b_fractional_component;
     uint16_t base_value;
