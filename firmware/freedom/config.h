@@ -4,6 +4,15 @@
 
 #include <limits.h>
 
+// A constant that makes sensor scaling equation work good enough without requiring manual calibration of base values.
+// More robust way of calibrating base values of sensors may be needed in the future.
+// Dependent on HE sensor, VCC of HE sensors, and ADC_VREF.
+// THIS_CONSTANT = sensor_min_reading - sensor_base_val
+// Sensor: SLSS49E, 4.4V VCC, 2.5V ADC_VREF
+#define SENSOR_BASE_OFFSET_4V4_2V5 275
+// Sensor: SLSS49E, 3.3V VCC, 3.3V ADC_VREF
+#define PICO_SENSOR_BASE_OFFSET 175
+
 // A sensor at X_MIN_mm is when the switch is completely released. A sensor at X_MAX_mm is completely pressed.
 #define X_MIN_mm (float)0
 // 4.1mm is the greatest displacement in mm that a magnetic switch can be pressed according to Gateron datasheet
