@@ -67,36 +67,13 @@ float int_components_to_float(int val, int fractional_component_as_int){
     return val + fractional_component_as_float;
 }
 
-// Guesses what board is in use and returns the corresponding base offset value
-// Hardcoded for SLSS49E sensors
-int determine_sensor_base_offset(void) {
-    int min_total = 0;
-    int count = 0;
-    for (int row = 0; row < MATRIX_ROWS; row++) {
-        for (int col = 0; col < MATRIX_COLS; col++) {
-            if (pin_scan_modes[row][col] == ANALOG) {
-                min_total += kb_config.matrix_sensor_bounds[row][col].min;
-                count++;
-            }
-        }
-    }
-
-    const int min_avg = min_total / count;
-    if (min_avg > 1500) {
-        return PICO_SENSOR_BASE_OFFSET;
-    } 
-    return SENSOR_BASE_OFFSET_4V4_2V5;
-}
-
 // Computes and stores the `a` and `b` parameters of the best-fit scaling equation. 
 void compute_sensor_scaling_params(void){
-    const int sensor_base_offset = determine_sensor_base_offset();
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
                 int max = kb_config.matrix_sensor_bounds[row][col].max;
                 int min = kb_config.matrix_sensor_bounds[row][col].min;
-                kb_config.matrix_scaling_params[row][col].base_value = min - sensor_base_offset; 
                 int base_val = kb_config.matrix_scaling_params[row][col].base_value;
 
                 float b_param = compute_b_param(max, min, base_val);
