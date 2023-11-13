@@ -41,10 +41,17 @@ void kb_config_save(void) {
 
 void eeconfig_init_kb(void) {
     kb_config.calibrated = false;
-    kb_config.rapid_trigger = true;
-    kb_config.actuation_point_dmm = 6;
-    kb_config.rapid_trigger_press_sensitivity_dmm = 2;
-    kb_config.rapid_trigger_release_sensitivity_dmm = 5;
+    kb_config.use_per_key_settings = false;
+    kb_config.global_actuation_settings.rapid_trigger = true;
+    kb_config.global_actuation_settings.actuation_point_dmm = 6;
+    kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm = 2;
+    kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm = 5;
+    for (int i = 0; i < SENSOR_COUNT; i++) {
+        kb_config.per_key_actuation_settings[i].rapid_trigger = true;
+        kb_config.per_key_actuation_settings[i].actuation_point_dmm = 6;
+        kb_config.per_key_actuation_settings[i].rapid_trigger_press_sensitivity_dmm = 2;
+        kb_config.per_key_actuation_settings[i].rapid_trigger_release_sensitivity_dmm = 5;
+    }
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
@@ -233,19 +240,19 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
         return false;
     case KC_TOGGLE_RAPID_TRIGGER:
         if (record->event.pressed) {
-            kb_config.rapid_trigger = !kb_config.rapid_trigger;
+            kb_config.global_actuation_settings.rapid_trigger = !kb_config.global_actuation_settings.rapid_trigger;
             kb_config_save();
         }
         return false;
     case KC_ACTUATION_DEC:
-        if (kb_config.actuation_point_dmm > 1) {
-            --kb_config.actuation_point_dmm;
+        if (kb_config.global_actuation_settings.actuation_point_dmm > 1) {
+            --kb_config.global_actuation_settings.actuation_point_dmm;
             kb_config_save();
         }
         return false;
     case KC_ACTUATION_INC:
-        if (kb_config.actuation_point_dmm < 40) {
-            ++kb_config.actuation_point_dmm;
+        if (kb_config.global_actuation_settings.actuation_point_dmm < 40) {
+            ++kb_config.global_actuation_settings.actuation_point_dmm;
             kb_config_save();
         }
         return false;
@@ -292,10 +299,23 @@ void matrix_scan_kb(void) {
 
 #ifdef VIA_ENABLE
 enum via_kb_config_value {
-    id_kb_rapid_trigger = 1,
-    id_kb_actuation_point_dmm = 2,
-    id_kb_rapid_trigger_press_sensitivity_dmm = 3,
-    id_kb_rapid_trigger_release_sensitivity_dmm = 4
+    id_kb_use_per_key_settings = 1,
+    id_kb_global_actuation_settings_rapid_trigger,
+    id_kb_global_actuation_settings_actuation_point_dmm,
+    id_kb_global_actuation_settings_rapid_trigger_press_sensitivity_dmm,
+    id_kb_global_actuation_settings_rapid_trigger_release_sensitivity_dmm,
+    id_kb_per_key_left_rapid_trigger,
+    id_kb_per_key_actuation_settings_left_actuation_distance,
+    id_kb_per_key_actuation_settings_left_press_sensitivity,
+    id_kb_per_key_actuation_settings_left_release_sensitivity,
+    id_kb_per_key_middle_rapid_trigger,
+    id_kb_per_key_actuation_settings_middle_actuation_distance,
+    id_kb_per_key_actuation_settings_middle_press_sensitivity,
+    id_kb_per_key_actuation_settings_middle_release_sensitivity,
+    id_kb_per_key_right_rapid_trigger,
+    id_kb_per_key_actuation_settings_right_actuation_distance,
+    id_kb_per_key_actuation_settings_right_press_sensitivity,
+    id_kb_per_key_actuation_settings_right_release_sensitivity
 };
 
 void kb_config_set_value(uint8_t* data) {
@@ -303,17 +323,56 @@ void kb_config_set_value(uint8_t* data) {
     uint8_t* value_data = &(data[1]);
 
     switch (*value_id) {
-    case id_kb_rapid_trigger:
-        kb_config.rapid_trigger = *value_data;
+    case id_kb_use_per_key_settings:
+        kb_config.use_per_key_settings = *value_data;
         break;
-    case id_kb_actuation_point_dmm:
-        kb_config.actuation_point_dmm = *value_data;
+    case id_kb_global_actuation_settings_rapid_trigger:
+        kb_config.global_actuation_settings.rapid_trigger = *value_data;
         break;
-    case id_kb_rapid_trigger_press_sensitivity_dmm:
-        kb_config.rapid_trigger_press_sensitivity_dmm = *value_data;
+    case id_kb_global_actuation_settings_actuation_point_dmm:
+        kb_config.global_actuation_settings.actuation_point_dmm = *value_data;
         break;
-    case id_kb_rapid_trigger_release_sensitivity_dmm:
-        kb_config.rapid_trigger_release_sensitivity_dmm = *value_data;
+    case id_kb_global_actuation_settings_rapid_trigger_press_sensitivity_dmm:
+        kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_global_actuation_settings_rapid_trigger_release_sensitivity_dmm:
+        kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_per_key_left_rapid_trigger:
+        kb_config.per_key_actuation_settings[0].rapid_trigger = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_left_actuation_distance:
+        kb_config.per_key_actuation_settings[0].actuation_point_dmm = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_left_press_sensitivity:
+        kb_config.per_key_actuation_settings[0].rapid_trigger_press_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_left_release_sensitivity:
+        kb_config.per_key_actuation_settings[0].rapid_trigger_release_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_per_key_middle_rapid_trigger:
+        kb_config.per_key_actuation_settings[1].rapid_trigger = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_middle_actuation_distance:
+        kb_config.per_key_actuation_settings[1].actuation_point_dmm = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_middle_press_sensitivity:
+        kb_config.per_key_actuation_settings[1].rapid_trigger_press_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_middle_release_sensitivity:
+        kb_config.per_key_actuation_settings[1].rapid_trigger_release_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_per_key_right_rapid_trigger:
+        kb_config.per_key_actuation_settings[2].rapid_trigger = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_right_actuation_distance:
+        kb_config.per_key_actuation_settings[2].actuation_point_dmm = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_right_press_sensitivity:
+        kb_config.per_key_actuation_settings[2].rapid_trigger_press_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_right_release_sensitivity:
+        kb_config.per_key_actuation_settings[2].rapid_trigger_release_sensitivity_dmm = *value_data;
         break;
     }
 }
@@ -324,17 +383,56 @@ void kb_config_get_value(uint8_t* data) {
     uint8_t* value_data = &(data[1]);
 
     switch (*value_id) {
-    case id_kb_rapid_trigger:
-        *value_data = kb_config.rapid_trigger;
+    case id_kb_use_per_key_settings:
+        *value_data = kb_config.use_per_key_settings;
         break;
-    case id_kb_actuation_point_dmm:
-        *value_data = kb_config.actuation_point_dmm;
+    case id_kb_global_actuation_settings_rapid_trigger:
+        *value_data = kb_config.global_actuation_settings.rapid_trigger;
         break;
-    case id_kb_rapid_trigger_press_sensitivity_dmm:
-        *value_data = kb_config.rapid_trigger_press_sensitivity_dmm;
+    case id_kb_global_actuation_settings_actuation_point_dmm:
+        *value_data = kb_config.global_actuation_settings.actuation_point_dmm;
         break;
-    case id_kb_rapid_trigger_release_sensitivity_dmm:
-        *value_data = kb_config.rapid_trigger_release_sensitivity_dmm;
+    case id_kb_global_actuation_settings_rapid_trigger_press_sensitivity_dmm:
+        *value_data = kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm;
+        break;
+    case id_kb_global_actuation_settings_rapid_trigger_release_sensitivity_dmm:
+        *value_data = kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm;
+        break;
+    case id_kb_per_key_left_rapid_trigger:
+        *value_data = kb_config.per_key_actuation_settings[0].rapid_trigger;
+        break;
+    case id_kb_per_key_actuation_settings_left_actuation_distance:
+        *value_data = kb_config.per_key_actuation_settings[0].actuation_point_dmm;
+        break;
+    case id_kb_per_key_actuation_settings_left_press_sensitivity:
+        *value_data = kb_config.per_key_actuation_settings[0].rapid_trigger_press_sensitivity_dmm;
+        break;
+    case id_kb_per_key_actuation_settings_left_release_sensitivity:
+        *value_data = kb_config.per_key_actuation_settings[0].rapid_trigger_release_sensitivity_dmm;
+        break;
+    case id_kb_per_key_middle_rapid_trigger:
+        *value_data = kb_config.per_key_actuation_settings[1].rapid_trigger;
+        break;
+    case id_kb_per_key_actuation_settings_middle_actuation_distance:
+        *value_data = kb_config.per_key_actuation_settings[1].actuation_point_dmm;
+        break;
+    case id_kb_per_key_actuation_settings_middle_press_sensitivity:
+        *value_data = kb_config.per_key_actuation_settings[1].rapid_trigger_press_sensitivity_dmm;
+        break;
+    case id_kb_per_key_actuation_settings_middle_release_sensitivity:
+        *value_data = kb_config.per_key_actuation_settings[1].rapid_trigger_release_sensitivity_dmm;
+        break;
+    case id_kb_per_key_right_rapid_trigger:
+        *value_data = kb_config.per_key_actuation_settings[2].rapid_trigger;
+        break;
+    case id_kb_per_key_actuation_settings_right_actuation_distance:
+        *value_data = kb_config.per_key_actuation_settings[2].actuation_point_dmm;
+        break;
+    case id_kb_per_key_actuation_settings_right_press_sensitivity:
+        *value_data = kb_config.per_key_actuation_settings[2].rapid_trigger_press_sensitivity_dmm;
+        break;
+    case id_kb_per_key_actuation_settings_right_release_sensitivity:
+        *value_data = kb_config.per_key_actuation_settings[2].rapid_trigger_release_sensitivity_dmm;
         break;
     }
 }

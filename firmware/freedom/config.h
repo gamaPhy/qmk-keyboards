@@ -31,7 +31,7 @@
 #define MIN_SENSOR_BOUND_RANGE 300
 
 // corresponds to size of kb_config_t in freedom.h
-#define EECONFIG_KB_DATA_SIZE 128 
+#define EECONFIG_KB_DATA_SIZE 140
 #define DEBUG_MATRIX_SCAN_RATE
 
 #define RGBLIGHT_EFFECT_RAINBOW_SWIRL
