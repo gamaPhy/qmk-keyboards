@@ -22,30 +22,111 @@
             },
             {
               "showIf": "{id_kb_use_per_key_settings} == 0",
-              "label": "Rapid trigger",
+              "label": "Rapid Trigger",
               "type": "toggle",
               "content": ["id_kb_global_actuation_settings_rapid_trigger", 0, 2]
             },
             {
               "showIf": "{id_kb_use_per_key_settings} == 0",
-              "label": "Actuation distance",
+              "label": "Actuation Distance",
               "type": "range",
               "options": [1, 40],
               "content": ["id_kb_global_actuation_settings_actuation_point_dmm", 0, 3]
             },
             {
               "showIf": "{id_kb_global_actuation_settings_rapid_trigger} == 1 && {id_kb_use_per_key_settings} == 0",
-              "label": "Press sensitivity",
+              "label": "Press Sensitivity",
               "type": "range",
               "options": [1, 40],
               "content": ["id_kb_global_actuation_settings_rapid_trigger_press_sensitivity_dmm", 0, 4]
             },
             {
               "showIf": "{id_kb_global_actuation_settings_rapid_trigger} == 1 && {id_kb_use_per_key_settings} == 0",
-              "label": "Release sensitivity",
+              "label": "Release Sensitivity",
               "type": "range",
               "options": [1, 40],
               "content": ["id_kb_global_actuation_settings_rapid_trigger_release_sensitivity_dmm", 0, 5]
+            },
+            {
+              "showIf": "{id_kb_use_per_key_settings} == 1",
+              "label": "Left Key Rapid Trigger",
+              "type": "toggle",
+              "content": ["id_kb_per_key_left_rapid_trigger", 0, 6]
+            },
+            {
+              "showIf": "{id_kb_use_per_key_settings} == 1",
+              "label": "Left Key Actuation Distance",
+              "type": "range",
+              "options": [1, 40],
+              "content": ["id_kb_per_key_actuation_settings_left_actuation_distance", 0, 7]
+            },
+            {
+              "showIf": "{id_kb_per_key_left_rapid_trigger} == 1 && {id_kb_use_per_key_settings} == 1",
+              "label": "Left Key Press Sensitivity",
+              "type": "range",
+              "options": [1, 40],
+              "content": ["id_kb_per_key_actuation_settings_left_press_sensitivity", 0, 8]
+            },
+            {
+              "showIf": "{id_kb_per_key_left_rapid_trigger} == 1 && {id_kb_use_per_key_settings} == 1",
+              "label": "Left Key Release Sensitivity",
+              "type": "range",
+              "options": [1, 40],
+              "content": ["id_kb_per_key_actuation_settings_left_release_sensitivity", 0, 9]
+            },
+            {
+              "showIf": "{id_kb_use_per_key_settings} == 1",
+              "label": "Middle Key Rapid Trigger",
+              "type": "toggle",
+              "content": ["id_kb_per_key_middle_rapid_trigger", 0, 10]
+            },
+            {
+              "showIf": "{id_kb_use_per_key_settings} == 1",
+              "label": "Middle Key Actuation Distance",
+              "type": "range",
+              "options": [1, 40],
+              "content": ["id_kb_per_key_actuation_settings_middle_actuation_distance", 0, 11]
+            },
+            {
+              "showIf": "{id_kb_per_key_middle_rapid_trigger} == 1 && {id_kb_use_per_key_settings} == 1",
+              "label": "Middle Key Press Sensitivity",
+              "type": "range",
+              "options": [1, 40],
+              "content": ["id_kb_per_key_actuation_settings_middle_press_sensitivity", 0, 12]
+            },
+            {
+              "showIf": "{id_kb_per_key_middle_rapid_trigger} == 1 && {id_kb_use_per_key_settings} == 1",
+              "label": "Middle Key Release Sensitivity",
+              "type": "range",
+              "options": [1, 40],
+              "content": ["id_kb_per_key_actuation_settings_middle_release_sensitivity", 0, 13]
+            },
+            {
+              "showIf": "{id_kb_use_per_key_settings} == 1",
+              "label": "Right Key Rapid Trigger",
+              "type": "toggle",
+              "content": ["id_kb_per_key_right_rapid_trigger", 0, 10]
+            },
+            {
+              "showIf": "{id_kb_use_per_key_settings} == 1",
+              "label": "Right Key Actuation Distance",
+              "type": "range",
+              "options": [1, 40],
+              "content": ["id_kb_per_key_actuation_settings_right_actuation_distance", 0, 11]
+            },
+            {
+              "showIf": "{id_kb_per_key_right_rapid_trigger} == 1 && {id_kb_use_per_key_settings} == 1",
+              "label": "Right Key Press Sensitivity",
+              "type": "range",
+              "options": [1, 40],
+              "content": ["id_kb_per_key_actuation_settings_right_press_sensitivity", 0, 12]
+            },
+            {
+              "showIf": "{id_kb_per_key_right_rapid_trigger} == 1 && {id_kb_use_per_key_settings} == 1",
+              "label": "Right Key Release Sensitivity",
+              "type": "range",
+              "options": [1, 40],
+              "content": ["id_kb_per_key_actuation_settings_right_release_sensitivity", 0, 13]
             }
           ]
         }
