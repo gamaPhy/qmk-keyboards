@@ -37,11 +37,16 @@ typedef struct {
 } sensor_scaling_params_t;
 
 typedef struct {
-    bool calibrated;
     bool rapid_trigger;
     uint8_t actuation_point_dmm;
     uint8_t rapid_trigger_press_sensitivity_dmm;
     uint8_t rapid_trigger_release_sensitivity_dmm;
+} actuation_settings_t;
+
+typedef struct {
+    bool calibrated;
+    actuation_settings_t global_actuation_settings;
+    actuation_settings_t per_key_actuation_settings[SENSOR_COUNT];
     sensor_bounds_t matrix_sensor_bounds[MATRIX_ROWS][MATRIX_COLS];
     sensor_scaling_params_t matrix_scaling_params[MATRIX_ROWS][MATRIX_COLS];
 } kb_config_t;

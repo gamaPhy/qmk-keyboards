@@ -14,6 +14,7 @@
     { DIGITAL, DIGITAL, DIGITAL } \
 }
 
+// Used to keep track of data corresponding to each analog sensor.
 // -1 means there is no analog sensor 
 #define SENSOR_NUMS { \
     { 0,  1,  2 }, \

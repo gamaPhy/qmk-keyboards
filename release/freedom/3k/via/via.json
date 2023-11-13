@@ -18,27 +18,27 @@
             {
               "label": "Rapid trigger",
               "type": "toggle",
-              "content": ["id_kb_rapid_trigger", 0, 1]
+              "content": ["id_kb_global_actuation_settings_rapid_trigger", 0, 1]
             },
             {
               "label": "Actuation distance",
               "type": "range",
               "options": [1, 40],
-              "content": ["id_kb_actuation_point_dmm", 0, 2]
+              "content": ["id_kb_global_actuation_settings_actuation_point_dmm", 0, 2]
             },
             {
-              "showIf": "{id_kb_rapid_trigger} == 1",
+              "showIf": "{id_kb_global_actuation_settings_rapid_trigger} == 1",
               "label": "Press sensitivity",
               "type": "range",
               "options": [1, 40],
-              "content": ["id_kb_rapid_trigger_press_sensitivity_dmm", 0, 3]
+              "content": ["id_kb_global_actuation_settings_rapid_trigger_press_sensitivity_dmm", 0, 3]
             },
             {
-              "showIf": "{id_kb_rapid_trigger} == 1",
+              "showIf": "{id_kb_global_actuation_settings_rapid_trigger} == 1",
               "label": "Release sensitivity",
               "type": "range",
               "options": [1, 40],
-              "content": ["id_kb_rapid_trigger_release_sensitivity_dmm", 0, 4]
+              "content": ["id_kb_global_actuation_settings_rapid_trigger_release_sensitivity_dmm", 0, 4]
             }
           ]
         }
