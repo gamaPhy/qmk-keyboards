@@ -303,7 +303,19 @@ enum via_kb_config_value {
     id_kb_global_actuation_settings_rapid_trigger,
     id_kb_global_actuation_settings_actuation_point_dmm,
     id_kb_global_actuation_settings_rapid_trigger_press_sensitivity_dmm,
-    id_kb_global_actuation_settings_rapid_trigger_release_sensitivity_dmm
+    id_kb_global_actuation_settings_rapid_trigger_release_sensitivity_dmm,
+    id_kb_per_key_left_rapid_trigger,
+    id_kb_per_key_actuation_settings_left_actuation_distance,
+    id_kb_per_key_actuation_settings_left_press_sensitivity,
+    id_kb_per_key_actuation_settings_left_release_sensitivity,
+    id_kb_per_key_middle_rapid_trigger,
+    id_kb_per_key_actuation_settings_middle_actuation_distance,
+    id_kb_per_key_actuation_settings_middle_press_sensitivity,
+    id_kb_per_key_actuation_settings_middle_release_sensitivity,
+    id_kb_per_key_right_rapid_trigger,
+    id_kb_per_key_actuation_settings_right_actuation_distance,
+    id_kb_per_key_actuation_settings_right_press_sensitivity,
+    id_kb_per_key_actuation_settings_right_release_sensitivity
 };
 
 void kb_config_set_value(uint8_t* data) {
@@ -325,6 +337,42 @@ void kb_config_set_value(uint8_t* data) {
         break;
     case id_kb_global_actuation_settings_rapid_trigger_release_sensitivity_dmm:
         kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_per_key_left_rapid_trigger:
+        kb_config.per_key_actuation_settings[0].rapid_trigger = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_left_actuation_distance:
+        kb_config.per_key_actuation_settings[0].actuation_point_dmm = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_left_press_sensitivity:
+        kb_config.per_key_actuation_settings[0].rapid_trigger_press_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_left_release_sensitivity:
+        kb_config.per_key_actuation_settings[0].rapid_trigger_release_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_per_key_middle_rapid_trigger:
+        kb_config.per_key_actuation_settings[1].rapid_trigger = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_middle_actuation_distance:
+        kb_config.per_key_actuation_settings[1].actuation_point_dmm = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_middle_press_sensitivity:
+        kb_config.per_key_actuation_settings[1].rapid_trigger_press_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_middle_release_sensitivity:
+        kb_config.per_key_actuation_settings[1].rapid_trigger_release_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_per_key_right_rapid_trigger:
+        kb_config.per_key_actuation_settings[2].rapid_trigger = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_right_actuation_distance:
+        kb_config.per_key_actuation_settings[2].actuation_point_dmm = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_right_press_sensitivity:
+        kb_config.per_key_actuation_settings[2].rapid_trigger_press_sensitivity_dmm = *value_data;
+        break;
+    case id_kb_per_key_actuation_settings_right_release_sensitivity:
+        kb_config.per_key_actuation_settings[2].rapid_trigger_release_sensitivity_dmm = *value_data;
         break;
     }
 }
@@ -349,6 +397,42 @@ void kb_config_get_value(uint8_t* data) {
         break;
     case id_kb_global_actuation_settings_rapid_trigger_release_sensitivity_dmm:
         *value_data = kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm;
+        break;
+    case id_kb_per_key_left_rapid_trigger:
+        *value_data = kb_config.per_key_actuation_settings[0].rapid_trigger;
+        break;
+    case id_kb_per_key_actuation_settings_left_actuation_distance:
+        *value_data = kb_config.per_key_actuation_settings[0].actuation_point_dmm;
+        break;
+    case id_kb_per_key_actuation_settings_left_press_sensitivity:
+        *value_data = kb_config.per_key_actuation_settings[0].rapid_trigger_press_sensitivity_dmm;
+        break;
+    case id_kb_per_key_actuation_settings_left_release_sensitivity:
+        *value_data = kb_config.per_key_actuation_settings[0].rapid_trigger_release_sensitivity_dmm;
+        break;
+    case id_kb_per_key_middle_rapid_trigger:
+        *value_data = kb_config.per_key_actuation_settings[1].rapid_trigger;
+        break;
+    case id_kb_per_key_actuation_settings_middle_actuation_distance:
+        *value_data = kb_config.per_key_actuation_settings[1].actuation_point_dmm;
+        break;
+    case id_kb_per_key_actuation_settings_middle_press_sensitivity:
+        *value_data = kb_config.per_key_actuation_settings[1].rapid_trigger_press_sensitivity_dmm;
+        break;
+    case id_kb_per_key_actuation_settings_middle_release_sensitivity:
+        *value_data = kb_config.per_key_actuation_settings[1].rapid_trigger_release_sensitivity_dmm;
+        break;
+    case id_kb_per_key_right_rapid_trigger:
+        *value_data = kb_config.per_key_actuation_settings[2].rapid_trigger;
+        break;
+    case id_kb_per_key_actuation_settings_right_actuation_distance:
+        *value_data = kb_config.per_key_actuation_settings[2].actuation_point_dmm;
+        break;
+    case id_kb_per_key_actuation_settings_right_press_sensitivity:
+        *value_data = kb_config.per_key_actuation_settings[2].rapid_trigger_press_sensitivity_dmm;
+        break;
+    case id_kb_per_key_actuation_settings_right_release_sensitivity:
+        *value_data = kb_config.per_key_actuation_settings[2].rapid_trigger_release_sensitivity_dmm;
         break;
     }
 }
