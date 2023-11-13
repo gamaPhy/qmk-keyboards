@@ -41,11 +41,17 @@ void kb_config_save(void) {
 
 void eeconfig_init_kb(void) {
     kb_config.calibrated = false;
-    kb_config.use_global_settings = true;
+    kb_config.use_per_key_settings = false;
     kb_config.global_actuation_settings.rapid_trigger = true;
     kb_config.global_actuation_settings.actuation_point_dmm = 6;
     kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm = 2;
     kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm = 5;
+    for (int i = 0; i < SENSOR_COUNT; i++) {
+        kb_config.per_key_actuation_settings[i].rapid_trigger = true;
+        kb_config.per_key_actuation_settings[i].actuation_point_dmm = 6;
+        kb_config.per_key_actuation_settings[i].rapid_trigger_press_sensitivity_dmm = 2;
+        kb_config.per_key_actuation_settings[i].rapid_trigger_release_sensitivity_dmm = 5;
+    }
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
@@ -293,10 +299,11 @@ void matrix_scan_kb(void) {
 
 #ifdef VIA_ENABLE
 enum via_kb_config_value {
-    id_kb_global_actuation_settings_rapid_trigger = 1,
-    id_kb_global_actuation_settings_actuation_point_dmm = 2,
-    id_kb_global_actuation_settings_rapid_trigger_press_sensitivity_dmm = 3,
-    id_kb_global_actuation_settings_rapid_trigger_release_sensitivity_dmm = 4
+    id_kb_use_per_key_settings = 1,
+    id_kb_global_actuation_settings_rapid_trigger,
+    id_kb_global_actuation_settings_actuation_point_dmm,
+    id_kb_global_actuation_settings_rapid_trigger_press_sensitivity_dmm,
+    id_kb_global_actuation_settings_rapid_trigger_release_sensitivity_dmm
 };
 
 void kb_config_set_value(uint8_t* data) {
@@ -304,6 +311,9 @@ void kb_config_set_value(uint8_t* data) {
     uint8_t* value_data = &(data[1]);
 
     switch (*value_id) {
+    case id_kb_use_per_key_settings:
+        kb_config.use_per_key_settings = *value_data;
+        break;
     case id_kb_global_actuation_settings_rapid_trigger:
         kb_config.global_actuation_settings.rapid_trigger = *value_data;
         break;
@@ -325,6 +335,9 @@ void kb_config_get_value(uint8_t* data) {
     uint8_t* value_data = &(data[1]);
 
     switch (*value_id) {
+    case id_kb_use_per_key_settings:
+        *value_data = kb_config.use_per_key_settings;
+        break;
     case id_kb_global_actuation_settings_rapid_trigger:
         *value_data = kb_config.global_actuation_settings.rapid_trigger;
         break;

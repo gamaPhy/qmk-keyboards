@@ -60,12 +60,12 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
     uint16_t actuation_point;
     bool rapid_trigger;
     
-    if (kb_config.use_global_settings) {
-        actuation_point = kb_config.global_actuation_settings.actuation_point_dmm * LOOKUP_TABLE_MULTIPLIER;
-        rapid_trigger = kb_config.global_actuation_settings.rapid_trigger;
-    } else {
+    if (kb_config.use_per_key_settings) {
         actuation_point = kb_config.per_key_actuation_settings[sensor_nums[row][col]].actuation_point_dmm * LOOKUP_TABLE_MULTIPLIER;
         rapid_trigger = kb_config.per_key_actuation_settings[sensor_nums[row][col]].rapid_trigger;
+    } else {
+        actuation_point = kb_config.global_actuation_settings.actuation_point_dmm * LOOKUP_TABLE_MULTIPLIER;
+        rapid_trigger = kb_config.global_actuation_settings.rapid_trigger;
     }
 
     // don't release until switch is above the original acutation point, preventing multipress bug.
@@ -78,10 +78,10 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
             // if the key is raised above the lowest point by sensitivity_delta, 
             // or above the main release point, release the key.
             int release_threshold;
-            if (kb_config.use_global_settings) {
-                release_threshold = current_extremes[row][col] - kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm * LOOKUP_TABLE_MULTIPLIER;
-            } else {
+            if (kb_config.use_per_key_settings) {
                 release_threshold = current_extremes[row][col] - kb_config.per_key_actuation_settings[sensor_nums[row][col]].rapid_trigger_release_sensitivity_dmm * LOOKUP_TABLE_MULTIPLIER;
+            } else {
+                release_threshold = current_extremes[row][col] - kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm * LOOKUP_TABLE_MULTIPLIER;
             }
             if (key_x <= release_threshold || key_x <= release_point) {
                 current_extremes[row][col] = key_x;
@@ -107,10 +107,10 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
             // if the key is pressed below the highest point by sensitivity_delta, actuate the key.
             // however, the key must also be past the main actuation point
             uint16_t actuate_threshold;
-            if (kb_config.use_global_settings) {
-                actuate_threshold = current_extremes[row][col] + kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm * LOOKUP_TABLE_MULTIPLIER;
-            } else {
+            if (kb_config.use_per_key_settings) {
                 actuate_threshold = current_extremes[row][col] + kb_config.per_key_actuation_settings[sensor_nums[row][col]].rapid_trigger_press_sensitivity_dmm * LOOKUP_TABLE_MULTIPLIER;
+            } else {
+                actuate_threshold = current_extremes[row][col] + kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm * LOOKUP_TABLE_MULTIPLIER;
             }
             if (key_x >= actuate_threshold && key_x >= actuation_point) {
                 current_extremes[row][col] = key_x;
