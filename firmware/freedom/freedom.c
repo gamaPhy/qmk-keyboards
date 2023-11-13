@@ -13,7 +13,7 @@ kb_config_t kb_config;
 
 const pin_t direct_pins[MATRIX_ROWS][MATRIX_COLS] = DIRECT_PINS;
 const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS] = PIN_SCAN_MODES;
-const int sensor_num[MATRIX_ROWS][MATRIX_COLS] = SENSOR_NUM;
+const int sensor_nums[MATRIX_ROWS][MATRIX_COLS] = SENSOR_NUMS;
 
 extern uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
 
@@ -152,7 +152,7 @@ void create_lookup_table(void) {
                     float base = (float)kb_config.matrix_scaling_params[row][col].base_value;
                     for (int adc_val = 0; adc_val < MAX_ADC_READING; adc_val++) {
                         float val_mm = (cbrt(a/((float)adc_val - base)) - b);
-                        int sensor = sensor_num[row][col];
+                        int sensor = sensor_nums[row][col];
 
                         if (val_mm < X_MIN_mm) {
                             sensor_lookup_table[sensor][adc_val] = mm_to_lookup_table_val(X_MIN_mm);

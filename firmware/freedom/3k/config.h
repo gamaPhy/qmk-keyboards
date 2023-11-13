@@ -15,7 +15,7 @@
 }
 
 // -1 means there is no analog sensor 
-#define SENSOR_NUM { \
+#define SENSOR_NUMS { \
     { 0,  1,  2 }, \
     { -1, -1, -1 } \
 }
