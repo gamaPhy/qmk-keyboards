@@ -41,6 +41,7 @@ void kb_config_save(void) {
 
 void eeconfig_init_kb(void) {
     kb_config.calibrated = false;
+    kb_config.use_global_settings = true;
     kb_config.global_actuation_settings.rapid_trigger = true;
     kb_config.global_actuation_settings.actuation_point_dmm = 6;
     kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm = 2;
