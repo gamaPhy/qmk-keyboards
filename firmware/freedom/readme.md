@@ -20,8 +20,11 @@ See the [build environment setup](https://docs.qmk.fm/#/getting_started_build_to
 
 ## Bootloader
 
-Enter the bootloader in 3 ways:
+Enter the bootloader *without* clearing the EEPROM in 3 ways (useful for preserving sensor calibration values):
 
-* **Bootmagic reset**: Hold down the left most digital button and plug in the keyboard.
-* **Physical reset button**: Press the reset button on the PCB.
+* **Bootmagic reset**: Hold down the left-most digital button and plug in the keyboard.
+* **Physical reset button**: Press the reset button (and boot button for rp2040) on the PCB.
 * **Keycode in layout**: Press the key mapped to `QK_BOOT` if it is available.
+
+Enter the bootloader *and* clear the EEPROM in 1 way (useful for when firmware is corrupt):
+* Hold down the two left-most digital buttons and plug in the keyboard.
