@@ -45,6 +45,7 @@ typedef struct {
 
 typedef struct {
     bool calibrated;
+    bool base_values_calibrated;
     bool use_per_key_settings;
     actuation_settings_t global_actuation_settings;
     actuation_settings_t per_key_actuation_settings[SENSOR_COUNT];

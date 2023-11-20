@@ -41,6 +41,7 @@ void kb_config_save(void) {
 
 void eeconfig_init_kb(void) {
     kb_config.calibrated = false;
+    kb_config.base_values_calibrated = false;
     kb_config.use_per_key_settings = false;
     kb_config.global_actuation_settings.rapid_trigger = true;
     kb_config.global_actuation_settings.actuation_point_dmm = 6;
@@ -90,36 +91,39 @@ float int_components_to_float(int val, int fractional_component_as_int){
     return val + fractional_component_as_float;
 }
 
+// checks if difference between base value and min sensor reading with a magentic switch is reasonable
+bool base_value_valid(uint8_t row, uint8_t col) {
+    // the difference is large enough to be considered calibrated correctly
+    if (abs(kb_config.matrix_scaling_params[row][col].base_value - kb_config.matrix_sensor_bounds[row][col].min) 
+        > (SENSOR_BASE_OFFSET_4V4_2V5 - 100)) {
+        return true;
+    }
+    return false;
+}
+
+// Depending on whether sensor base values are calibrated,
 // Guesses what board is in use and returns the corresponding base offset value
 // Hardcoded for SLSS49E sensors
-int determine_sensor_base_offset(void) {
-    int min_total = 0;
-    int count = 0;
-    for (int row = 0; row < MATRIX_ROWS; row++) {
-        for (int col = 0; col < MATRIX_COLS; col++) {
-            if (pin_scan_modes[row][col] == ANALOG) {
-                min_total += kb_config.matrix_sensor_bounds[row][col].min;
-                count++;
-            }
-        }
+int determine_sensor_base_value(uint8_t row, uint8_t col) {
+    if (kb_config.base_values_calibrated && base_value_valid(row, col)) {
+        return kb_config.matrix_scaling_params[row][col].base_value;
+    } else {
+        int min_sensor_reading = kb_config.matrix_sensor_bounds[row][col].min;
+        if (min_sensor_reading > 1500) {
+            return min_sensor_reading - PICO_SENSOR_BASE_OFFSET;
+        } 
+        return min_sensor_reading - SENSOR_BASE_OFFSET_4V4_2V5;
     }
-
-    const int min_avg = min_total / count;
-    if (min_avg > 1500) {
-        return PICO_SENSOR_BASE_OFFSET;
-    } 
-    return SENSOR_BASE_OFFSET_4V4_2V5;
 }
 
 // Computes and stores the `a` and `b` parameters of the best-fit scaling equation. 
 void compute_sensor_scaling_params(void){
-    const int sensor_base_offset = determine_sensor_base_offset();
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
                 int max = kb_config.matrix_sensor_bounds[row][col].max;
                 int min = kb_config.matrix_sensor_bounds[row][col].min;
-                kb_config.matrix_scaling_params[row][col].base_value = min - sensor_base_offset; 
+                kb_config.matrix_scaling_params[row][col].base_value = determine_sensor_base_value(row, col); 
                 int base_val = kb_config.matrix_scaling_params[row][col].base_value;
 
                 float b_param = compute_b_param(max, min, base_val);
@@ -189,10 +193,42 @@ bool calibration_successful(void) {
     return true;
 }
 
+void base_value_calibration(void) {
+    for (int row = 0; row < MATRIX_ROWS; row++) {
+        for (int col = 0; col < MATRIX_COLS; col++) {
+            if (pin_scan_modes[row][col] == ANALOG) {
+                // oversample base values even more than normal
+                pin_t pin = direct_pins[row][col];
+                const int count = 5;
+                int accum = 0;
+                for (int i = 0; i < count; i++) {
+                    accum += oversample(pin);
+                }
+                uint16_t sensor_value = accum / count;
+                kb_config.matrix_scaling_params[row][col].base_value = sensor_value;
+            }
+        }
+    }
+    kb_config.base_values_calibrated = true;
+    kb_config_save();
+}
+
 void keyboard_post_init_user(void) {
     debug_enable = true;
     setPinOutput(PICO_LED);
     eeconfig_read_kb_datablock(&kb_config);
+
+    // check if base value calibration should be performed
+    matrix_scan();
+    wait_ms(30);
+    matrix_scan();
+    if ((matrix_get_row(BASE_VAL_CAL_ROW_0) & (1 << BASE_VAL_CAL_COL_0)) && (matrix_get_row(BASE_VAL_CAL_ROW_1) & (1 << BASE_VAL_CAL_COL_1))) {
+        base_value_calibration();
+        writePinHigh(PICO_LED);
+        // board must be power cycled after calibrating base values to protect against accidental base value calibrations causing stray keypresses
+        for (;;); 
+    }
+
     create_lookup_table();
 }
 

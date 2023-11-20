@@ -5,6 +5,11 @@
 #define BOOTMAGIC_LITE_ROW 1
 #define BOOTMAGIC_LITE_COLUMN 0
 
+#define BASE_VAL_CAL_ROW_0 1
+#define BASE_VAL_CAL_COL_0 1
+#define BASE_VAL_CAL_ROW_1 1
+#define BASE_VAL_CAL_COL_1 2
+
 // Set to maximum number which still results in matrix scan frequency greater than 500
 // since this means at most 2ms matrix scan frequency
 #define OVERSAMPLING_TOTAL_SAMPLES 70
