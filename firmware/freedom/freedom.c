@@ -5,6 +5,7 @@
 #include <limits.h>
 
 #include "freedom.h"
+#include "virtser.h"
 #include "sensor_read.h"
 
 bool calibrating_sensors = false;
@@ -266,6 +267,9 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
 void matrix_scan_kb(void) {
     static uint16_t key_timer;
     if (timer_elapsed(key_timer) > 1000) {
+        virtser_send(0x1b);
+        virtser_send('c');
+        virtser_send(0b00100001);
         key_timer = timer_read();
         dprintf("(%i, %i) (%i, %i) (%i, %i)\n", min1, max1, min2, max2, min3, max3);
         dprintf("(%i, %i) (%i, %i) (%i, %i)\n\n", 

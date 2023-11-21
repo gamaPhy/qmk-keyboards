@@ -1,3 +1,4 @@
+VIRTSER_ENABLE = yes
 EXTRAKEY_ENABLE = yes
 WS2812_DRIVER = vendor
 EEPROM_DRIVER = wear_leveling
