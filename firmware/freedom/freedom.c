@@ -264,18 +264,44 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
     return true;
 }
 
+void virtser_recv(const uint8_t ch) {
+//   static char line[XMK_SHELL_LINE_LEN];
+//   static uint8_t line_index = 0;
+  if (ch == '\r') {
+    dprintf("virtser_recv: ch: %3u '\\r' \n", ch);
+    // dprintf("virtser_recv: i: %3u, ch: %3u '\\r' \n", line_index, ch);
+    // line[line_index] = '\0';
+    // xmk_shell(line);
+    // line_index = 0;
+  } else if (ch == '\n') {
+    dprintf("virtser_recv: ch: %3u '\\n' \n", ch);
+  } else {
+    dprintf("virtser_recv: ch: %3u '%c'\n", ch, ch);
+    // if (line_index < (XMK_SHELL_LINE_LEN - 1)) {
+    //   line[line_index] = ch;
+    //   line_index++;
+    // }
+  }
+}
+
 void matrix_scan_kb(void) {
     static uint16_t key_timer;
     if (timer_elapsed(key_timer) > 1000) {
-        virtser_send(0x1b);
-        virtser_send('c');
-        virtser_send(0b00100001);
+        // for (int i = 0; i < 10; i++) {
+        //     for (int j = 0; j < i; j++) {
+        //         virtser_send(0b00100001);
+        //     }
+        //     virtser_send(10);
+        //     virtser_send(13);
+        // }
+        // virtser_send(10);
+        // virtser_send(0x1b);
         key_timer = timer_read();
-        dprintf("(%i, %i) (%i, %i) (%i, %i)\n", min1, max1, min2, max2, min3, max3);
-        dprintf("(%i, %i) (%i, %i) (%i, %i)\n\n", 
-                sensor_lookup_table[0][min1], sensor_lookup_table[0][max1], 
-                sensor_lookup_table[1][min2], sensor_lookup_table[1][max2], 
-                sensor_lookup_table[2][min3], sensor_lookup_table[2][max3]);
+        // dprintf("(%i, %i) (%i, %i) (%i, %i)\n", min1, max1, min2, max2, min3, max3);
+        // dprintf("(%i, %i) (%i, %i) (%i, %i)\n\n", 
+        //         sensor_lookup_table[0][min1], sensor_lookup_table[0][max1], 
+        //         sensor_lookup_table[1][min2], sensor_lookup_table[1][max2], 
+        //         sensor_lookup_table[2][min3], sensor_lookup_table[2][max3]);
         min1 = -1;
         max1 = 0;
         min2 = -1;
