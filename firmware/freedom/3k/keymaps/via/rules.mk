@@ -1,3 +1,8 @@
+ifdef TEST
+	OPT_DEFS += -DTEST
+endif
+
 VIA_ENABLE = yes
 # EXTRAKEY_ENABLE = yes
 # MOUSEKEY_ENABLE = yes
+

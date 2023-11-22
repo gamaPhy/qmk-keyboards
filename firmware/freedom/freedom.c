@@ -278,6 +278,9 @@ void matrix_scan_kb(void) {
         max2 = 0;
         min3 = -1;
         max3 = 0;
+#ifdef TEST
+        dprintf("\nTEST\n");
+#endif
     }
 
     if (calibrating_sensors) {
