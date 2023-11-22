@@ -22,7 +22,7 @@ uint16_t min1, max1, min2, max2, min3, max3;
 // Our bootmagic implementation allows optionally clearing EEPROM depending on 
 // whether the BOOTMAGIC_CLEAR button is held down along with the original BOOTMAGIC_LITE button.
 // If the EEPROM gets so corrupt that the MCU doesn't get to this point, it can be reset manually.
-// For rp2040, this requires loading `flash_nuke.uf2` which can be found in our directory, or at:
+// For rp2040, this requires loading `flash_nuke.uf2` which can be found in our repo, or at:
 // https://www.raspberrypi.com/documentation/microcontrollers/raspberry-pi-pico.html#resetting-flash-memory
 void bootmagic_lite(void) {
     matrix_scan();
