@@ -55,6 +55,7 @@ typedef struct {
 
 extern kb_config_t kb_config;
 extern bool calibrating_sensors;
+extern bool lookup_table_ready;
 extern const pin_t direct_pins[MATRIX_ROWS][MATRIX_COLS];
 extern const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS];
 extern const int sensor_nums[MATRIX_ROWS][MATRIX_COLS];

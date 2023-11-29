@@ -143,8 +143,8 @@ void matrix_read_cols_on_row(matrix_row_t current_matrix[], uint8_t current_row)
         if (pin_mode == DIGITAL) {
             current_row_value |= readPin(pin) ? 0 : row_shifter;
         } 
-        else if (!kb_config.calibrated) {
-            // analog keys don't operate if they aren't calibrated
+        else if (!kb_config.calibrated || !lookup_table_ready) {
+            // analog keys don't operate
             current_row_value |= 0;
         }
         else if (pin_mode == ANALOG && !calibrating_sensors) {

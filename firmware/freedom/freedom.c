@@ -7,7 +7,6 @@
 #include "freedom.h"
 #include "sensor_read.h"
 
-bool calibrating_sensors = false;
 
 kb_config_t kb_config;
 
@@ -15,6 +14,8 @@ const pin_t direct_pins[MATRIX_ROWS][MATRIX_COLS] = DIRECT_PINS;
 const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS] = PIN_SCAN_MODES;
 const int sensor_nums[MATRIX_ROWS][MATRIX_COLS] = SENSOR_NUMS;
 
+bool calibrating_sensors = false;
+bool lookup_table_ready = false;
 extern uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
 
 uint16_t min1, max1, min2, max2, min3, max3;
@@ -191,11 +192,43 @@ bool calibration_successful(void) {
     return true;
 }
 
+void calibrate_sensor_min_values(void) {
+    calibrating_sensors = true;
+    writePinHigh(PICO_LED);
+    for (int row = 0; row < MATRIX_ROWS; row++) {
+        for (int col = 0; col < MATRIX_COLS; col++) {
+            if (pin_scan_modes[row][col] == ANALOG) {
+                pin_t pin = direct_pins[row][col];
+                int accum = 0;
+                const int OVERSAMPLES = 5;
+                for (int i = 0; i < OVERSAMPLES; i++) {
+                    accum += oversample(pin);
+                }
+                kb_config.matrix_sensor_bounds[row][col].min = accum / OVERSAMPLES;
+            }
+        }
+    }
+    writePinLow(PICO_LED);
+    calibrating_sensors = false;
+}
+
+void keyboard_pre_init_user(void) {
+    setPinOutput(PICO_LED);
+    setPinOutput(WS2812_DI_PIN);
+}
+
 void keyboard_post_init_user(void) {
     debug_enable = true;
-    setPinOutput(PICO_LED);
-    eeconfig_read_kb_datablock(&kb_config);
-    create_lookup_table();
+    rgblight_sethsv_noeeprom(HSV_BLACK);
+    // runs once on standard bootup
+    if (!lookup_table_ready) {
+        eeconfig_read_kb_datablock(&kb_config);
+        calibrate_sensor_min_values();
+        compute_sensor_scaling_params();
+        create_lookup_table();
+        rgblight_reload_from_eeprom();
+        lookup_table_ready = true;
+    }
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
@@ -268,6 +301,9 @@ void matrix_scan_kb(void) {
     if (timer_elapsed(key_timer) > 1000) {
         key_timer = timer_read();
         dprintf("(%i, %i) (%i, %i) (%i, %i)\n", min1, max1, min2, max2, min3, max3);
+        dprintf("(%i, %i) (%i, %i) (%i, %i)\n", kb_config.matrix_sensor_bounds[0][0].min, kb_config.matrix_sensor_bounds[0][0].max, 
+                kb_config.matrix_sensor_bounds[0][1].min, kb_config.matrix_sensor_bounds[0][1].max,  
+                kb_config.matrix_sensor_bounds[0][2].min, kb_config.matrix_sensor_bounds[0][2].max  );
         dprintf("(%i, %i) (%i, %i) (%i, %i)\n\n", 
                 sensor_lookup_table[0][min1], sensor_lookup_table[0][max1], 
                 sensor_lookup_table[1][min2], sensor_lookup_table[1][max2], 
@@ -278,7 +314,14 @@ void matrix_scan_kb(void) {
         max2 = 0;
         min3 = -1;
         max3 = 0;
+        if (!lookup_table_ready) {
+            dprintf("\nlookup table not ready calc\n"); 
+        }
+        if (lookup_table_ready) {
+            dprintf("\nREADY\n"); 
+        }
     }
+
 
     if (calibrating_sensors) {
         for (int row = 0; row < MATRIX_ROWS; row++) {
