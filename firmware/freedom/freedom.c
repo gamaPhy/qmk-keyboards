@@ -196,6 +196,10 @@ void keyboard_post_init_user(void) {
     setPinOutput(PICO_LED);
     eeconfig_read_kb_datablock(&kb_config);
     create_lookup_table();
+    // need a dummy adc_read before enabling temperature sensor 
+    // https://github.com/qmk/qmk_firmware/pull/19453#issuecomment-1383271354
+    adc_read(TO_MUX(4, 0));
+    adcRPEnableTS(&ADCD1);
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
@@ -267,6 +271,7 @@ void matrix_scan_kb(void) {
     static uint16_t key_timer;
     if (timer_elapsed(key_timer) > 1000) {
         key_timer = timer_read();
+        dprintf("Temperature: %i\n", adc_read(TO_MUX(4, 0)));
         dprintf("(%i, %i) (%i, %i) (%i, %i)\n", min1, max1, min2, max2, min3, max3);
         dprintf("(%i, %i) (%i, %i) (%i, %i)\n\n", 
                 sensor_lookup_table[0][min1], sensor_lookup_table[0][max1], 
