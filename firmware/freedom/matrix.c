@@ -3,13 +3,14 @@
 
 #include QMK_KEYBOARD_H
 
-#include "sensor_read.h"
+#include "helpers/sensor_read.h"
+#include "helpers/lookup_table.h"
 
 extern matrix_row_t raw_matrix[MATRIX_ROWS]; // raw values
 extern matrix_row_t matrix[MATRIX_ROWS];     // debounced values
 extern uint16_t     min1, max1, min2, max2, min3, max3;
 
-uint8_t (*sensor_lookup_table)[MAX_ADC_READING];
+uint8_t sensor_lookup_table[SENSOR_COUNT][MAX_ADC_READING];
 
 void matrix_init_custom(void) {
     for (int row = 0; row < MATRIX_ROWS; row++) {
