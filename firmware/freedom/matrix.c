@@ -3,7 +3,7 @@
 
 #include QMK_KEYBOARD_H
 
-#include "sensor_read.h"
+#include "helpers/sensor_read.h"
 
 extern matrix_row_t raw_matrix[MATRIX_ROWS]; // raw values
 extern matrix_row_t matrix[MATRIX_ROWS];     // debounced values

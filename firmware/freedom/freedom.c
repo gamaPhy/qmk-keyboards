@@ -5,7 +5,7 @@
 #include <limits.h>
 
 #include "freedom.h"
-#include "sensor_read.h"
+#include "helpers/sensor_read.h"
 
 bool calibrating_sensors = false;
 
@@ -114,27 +114,27 @@ int determine_sensor_base_offset(void) {
 }
 
 // Computes and stores the `a` and `b` parameters of the best-fit scaling equation. 
-void compute_sensor_scaling_params(void){
+void compute_sensor_scaling_params(kb_config_t *kb_config){
     const int sensor_base_offset = determine_sensor_base_offset();
     for (int row = 0; row < MATRIX_ROWS; row++) {
         for (int col = 0; col < MATRIX_COLS; col++) {
             if (pin_scan_modes[row][col] == ANALOG) {
-                int max = kb_config.matrix_sensor_bounds[row][col].max;
-                int min = kb_config.matrix_sensor_bounds[row][col].min;
-                kb_config.matrix_scaling_params[row][col].base_value = min - sensor_base_offset; 
-                int base_val = kb_config.matrix_scaling_params[row][col].base_value;
+                int max = kb_config->matrix_sensor_bounds[row][col].max;
+                int min = kb_config->matrix_sensor_bounds[row][col].min;
+                kb_config->matrix_scaling_params[row][col].base_value = min - sensor_base_offset; 
+                int base_val = kb_config->matrix_scaling_params[row][col].base_value;
 
                 float b_param = compute_b_param(max, min, base_val);
-                kb_config.matrix_scaling_params[row][col].b = b_param;
-                kb_config.matrix_scaling_params[row][col].b_fractional_component = fractional_component_as_int(b_param);
-                kb_config.matrix_scaling_params[row][col].a = compute_a_param(b_param, max, min, base_val);
+                kb_config->matrix_scaling_params[row][col].b = b_param;
+                kb_config->matrix_scaling_params[row][col].b_fractional_component = fractional_component_as_int(b_param);
+                kb_config->matrix_scaling_params[row][col].a = compute_a_param(b_param, max, min, base_val);
 
                 dprintf("Sensor MIN: %i\n", (int) min);
                 dprintf("Sensor MAX: %i\n", (int) max);
-                dprintf("A: %li\n", kb_config.matrix_scaling_params[row][col].a);
-                dprintf("B: %i\n", kb_config.matrix_scaling_params[row][col].b);
-                dprintf("B decimal: %li / %i\n", kb_config.matrix_scaling_params[row][col].b_fractional_component, INT_MAX);
-                dprintf("BASE: %i\n", kb_config.matrix_scaling_params[row][col].base_value);
+                dprintf("A: %li\n", kb_config->matrix_scaling_params[row][col].a);
+                dprintf("B: %i\n", kb_config->matrix_scaling_params[row][col].b);
+                dprintf("B decimal: %li / %i\n", kb_config->matrix_scaling_params[row][col].b_fractional_component, INT_MAX);
+                dprintf("BASE: %i\n", kb_config->matrix_scaling_params[row][col].base_value);
             }
         }
     }
@@ -144,7 +144,8 @@ int mm_to_lookup_table_val(float val) {
     return val * LOOKUP_TABLE_MULTIPLIER * 10.0;
 }
 
-void create_lookup_table(void) {
+void create_lookup_table(kb_config_t *kb_config) {
+    compute_sensor_scaling_params(kb_config);
     // memory had been previously allocated for the lookup table
     if (sensor_lookup_table != NULL) {
         free(sensor_lookup_table);
@@ -156,9 +157,9 @@ void create_lookup_table(void) {
         for (int row = 0; row < MATRIX_ROWS; row++) {
             for (int col = 0; col < MATRIX_COLS; col++) {
                 if (pin_scan_modes[row][col] == ANALOG) {
-                    float a = (float)kb_config.matrix_scaling_params[row][col].a;
-                    float b = int_components_to_float(kb_config.matrix_scaling_params[row][col].b, kb_config.matrix_scaling_params[row][col].b_fractional_component);
-                    float base = (float)kb_config.matrix_scaling_params[row][col].base_value;
+                    float a = (float)kb_config->matrix_scaling_params[row][col].a;
+                    float b = int_components_to_float(kb_config->matrix_scaling_params[row][col].b, kb_config->matrix_scaling_params[row][col].b_fractional_component);
+                    float base = (float)kb_config->matrix_scaling_params[row][col].base_value;
                     for (int adc_val = 0; adc_val < MAX_ADC_READING; adc_val++) {
                         float val_mm = (cbrt(a/((float)adc_val - base)) - b);
                         int sensor = sensor_nums[row][col];
@@ -195,7 +196,7 @@ void keyboard_post_init_user(void) {
     debug_enable = true;
     setPinOutput(PICO_LED);
     eeconfig_read_kb_datablock(&kb_config);
-    create_lookup_table();
+    create_lookup_table(&kb_config);
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
@@ -227,8 +228,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
                 rgblight_reload_from_eeprom();
                 writePinLow(PICO_LED);
                 kb_config.calibrated = true;
-                compute_sensor_scaling_params();
-                create_lookup_table();
+                create_lookup_table(&kb_config);
 
                 kb_config_save();
             } else {
