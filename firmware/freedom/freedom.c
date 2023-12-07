@@ -10,16 +10,14 @@
 
 
 kb_config_t kb_config;
+sensor_bounds_t running_sensor_bounds[SENSOR_COUNT];
+uint8_t sensor_lookup_table[SENSOR_COUNT][MAX_ADC_READING];
 
 const pin_t direct_pins[MATRIX_ROWS][MATRIX_COLS] = DIRECT_PINS;
 const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS] = PIN_SCAN_MODES;
 const int sensor_nums[MATRIX_ROWS][MATRIX_COLS] = SENSOR_NUMS;
 
 bool calibrating_sensors = false;
-bool lookup_table_ready = false;
-extern uint8_t sensor_lookup_table[SENSOR_COUNT][MAX_ADC_READING];
-
-uint16_t min1, max1, min2, max2, min3, max3;
 
 // Our bootmagic implementation allows optionally clearing EEPROM depending on 
 // whether the BOOTMAGIC_CLEAR button is held down along with the original BOOTMAGIC_LITE button.
@@ -85,26 +83,6 @@ bool calibration_successful(void) {
     return true;
 }
 
-void calibrate_sensor_min_values(void) {
-    calibrating_sensors = true;
-    writePinHigh(PICO_LED);
-    for (int row = 0; row < MATRIX_ROWS; row++) {
-        for (int col = 0; col < MATRIX_COLS; col++) {
-            if (pin_scan_modes[row][col] == ANALOG) {
-                pin_t pin = direct_pins[row][col];
-                int accum = 0;
-                const int OVERSAMPLES = 5;
-                for (int i = 0; i < OVERSAMPLES; i++) {
-                    accum += oversample(pin);
-                }
-                kb_config.matrix_sensor_bounds[row][col].min = accum / OVERSAMPLES;
-            }
-        }
-    }
-    writePinLow(PICO_LED);
-    calibrating_sensors = false;
-}
-
 void keyboard_pre_init_user(void) {
     setPinOutput(PICO_LED);
     setPinOutput(WS2812_DI_PIN);
@@ -112,15 +90,10 @@ void keyboard_pre_init_user(void) {
 
 void keyboard_post_init_user(void) {
     debug_enable = true;
+    // have to turn on the rgb again after sensor min values have been calibrated
     rgblight_sethsv_noeeprom(HSV_BLACK);
-    // runs once on standard bootup
-    if (!lookup_table_ready) {
-        eeconfig_read_kb_datablock(&kb_config);
-        calibrate_sensor_min_values();
-        create_lookup_table(&kb_config, sensor_lookup_table);
-        rgblight_reload_from_eeprom();
-        lookup_table_ready = true;
-    }
+    eeconfig_read_kb_datablock(&kb_config);
+    create_lookup_table(&kb_config, sensor_lookup_table);
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
@@ -191,25 +164,24 @@ void matrix_scan_kb(void) {
     static uint16_t key_timer;
     if (timer_elapsed(key_timer) > 1000) {
         key_timer = timer_read();
-        dprintf("(%i, %i) (%i, %i) (%i, %i)\n", min1, max1, min2, max2, min3, max3);
+        for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
+            dprintf("(%i,%i) ", running_sensor_bounds[sensor].min, running_sensor_bounds[sensor].max);
+        }
+        dprintf("\n");
+
         dprintf("(%i, %i) (%i, %i) (%i, %i)\n", kb_config.matrix_sensor_bounds[0][0].min, kb_config.matrix_sensor_bounds[0][0].max, 
                 kb_config.matrix_sensor_bounds[0][1].min, kb_config.matrix_sensor_bounds[0][1].max,  
                 kb_config.matrix_sensor_bounds[0][2].min, kb_config.matrix_sensor_bounds[0][2].max  );
-        dprintf("(%i, %i) (%i, %i) (%i, %i)\n\n", 
-                sensor_lookup_table[0][min1], sensor_lookup_table[0][max1], 
-                sensor_lookup_table[1][min2], sensor_lookup_table[1][max2], 
-                sensor_lookup_table[2][min3], sensor_lookup_table[2][max3]);
-        min1 = -1;
-        max1 = 0;
-        min2 = -1;
-        max2 = 0;
-        min3 = -1;
-        max3 = 0;
-        if (!lookup_table_ready) {
-            dprintf("\nlookup table not ready calc\n"); 
+
+        for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
+            dprintf("(%i, %i) ", 
+                    sensor_lookup_table[sensor][running_sensor_bounds[sensor].min], sensor_lookup_table[sensor][running_sensor_bounds[sensor].max]); 
         }
-        if (lookup_table_ready) {
-            dprintf("\nREADY\n"); 
+        dprintf("\n\n");
+
+        for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
+            running_sensor_bounds[sensor].min = -1;
+            running_sensor_bounds[sensor].max = 0;
         }
     }
 
