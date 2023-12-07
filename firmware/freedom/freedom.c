@@ -273,6 +273,9 @@ void matrix_scan_kb(void) {
         key_timer = timer_read();
         dprintf("Temperature: %i\n", adc_read(TO_MUX(4, 0)));
         dprintf("(%i, %i) (%i, %i) (%i, %i)\n", min1, max1, min2, max2, min3, max3);
+        dprintf("(%i, %i) (%i, %i) (%i, %i)\n", kb_config.matrix_sensor_bounds[0][0].min, kb_config.matrix_sensor_bounds[0][0].max, 
+                kb_config.matrix_sensor_bounds[0][1].min, kb_config.matrix_sensor_bounds[0][1].max,  
+                kb_config.matrix_sensor_bounds[0][2].min, kb_config.matrix_sensor_bounds[0][2].max  );
         dprintf("(%i, %i) (%i, %i) (%i, %i)\n\n", 
                 sensor_lookup_table[0][min1], sensor_lookup_table[0][max1], 
                 sensor_lookup_table[1][min2], sensor_lookup_table[1][max2], 
