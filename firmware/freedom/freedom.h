@@ -53,6 +53,8 @@ typedef struct {
 } kb_config_t;
 
 
+extern bool bootup_calibrated;
+extern uint8_t boot_count;
 extern kb_config_t kb_config;
 extern uint8_t sensor_lookup_table[SENSOR_COUNT][MAX_ADC_READING];
 extern sensor_bounds_t running_sensor_bounds[SENSOR_COUNT];

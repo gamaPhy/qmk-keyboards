@@ -132,6 +132,9 @@ void matrix_read_cols_on_row(matrix_row_t current_matrix[], uint8_t current_row)
         else if (pin_mode == ANALOG && !calibrating_sensors) {
             if (scan_pin_analog(pin, current_row, col_index)) {
                 current_row_value |= row_shifter;
+                if (!bootup_calibrated) {
+                    current_row_value |= 0;
+                }
             }
         }
     }

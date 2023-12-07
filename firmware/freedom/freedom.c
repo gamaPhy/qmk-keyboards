@@ -17,6 +17,9 @@ const pin_t direct_pins[MATRIX_ROWS][MATRIX_COLS] = DIRECT_PINS;
 const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS] = PIN_SCAN_MODES;
 const int sensor_nums[MATRIX_ROWS][MATRIX_COLS] = SENSOR_NUMS;
 
+bool bootup_calibrated = false;
+uint8_t boot_count = 0;
+
 bool calibrating_sensors = false;
 
 // Our bootmagic implementation allows optionally clearing EEPROM depending on 
@@ -94,6 +97,10 @@ void keyboard_post_init_user(void) {
     rgblight_sethsv_noeeprom(HSV_BLACK);
     eeconfig_read_kb_datablock(&kb_config);
     create_lookup_table(&kb_config, sensor_lookup_table);
+    for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
+        running_sensor_bounds[sensor].min = -1;
+        running_sensor_bounds[sensor].max = 0;
+    }
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
@@ -164,27 +171,39 @@ void matrix_scan_kb(void) {
     static uint16_t key_timer;
     if (timer_elapsed(key_timer) > 1000) {
         key_timer = timer_read();
-        for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
-            dprintf("(%i,%i) ", running_sensor_bounds[sensor].min, running_sensor_bounds[sensor].max);
-        }
-        dprintf("\n");
-
-        dprintf("(%i, %i) (%i, %i) (%i, %i)\n", kb_config.matrix_sensor_bounds[0][0].min, kb_config.matrix_sensor_bounds[0][0].max, 
-                kb_config.matrix_sensor_bounds[0][1].min, kb_config.matrix_sensor_bounds[0][1].max,  
-                kb_config.matrix_sensor_bounds[0][2].min, kb_config.matrix_sensor_bounds[0][2].max  );
-
-        for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
-            dprintf("(%i, %i) ", 
-                    sensor_lookup_table[sensor][running_sensor_bounds[sensor].min], sensor_lookup_table[sensor][running_sensor_bounds[sensor].max]); 
-        }
-        dprintf("\n\n");
-
-        for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
-            running_sensor_bounds[sensor].min = -1;
-            running_sensor_bounds[sensor].max = 0;
+        
+        if (!bootup_calibrated) {
+            boot_count++;
+            if (boot_count == 4) {
+                for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
+                    kb_config.matrix_sensor_bounds[0][sensor].min = running_sensor_bounds[sensor].min;
+                }
+                create_lookup_table(&kb_config, sensor_lookup_table);
+                bootup_calibrated = true;
+                rgblight_reload_from_eeprom();
+            }
+        } else {
+            for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
+                dprintf("(%i,%i) ", running_sensor_bounds[sensor].min, running_sensor_bounds[sensor].max);
+            }
+            dprintf("\n");
+    
+            dprintf("(%i, %i) (%i, %i) (%i, %i)\n", kb_config.matrix_sensor_bounds[0][0].min, kb_config.matrix_sensor_bounds[0][0].max, 
+                    kb_config.matrix_sensor_bounds[0][1].min, kb_config.matrix_sensor_bounds[0][1].max,  
+                    kb_config.matrix_sensor_bounds[0][2].min, kb_config.matrix_sensor_bounds[0][2].max  );
+    
+            for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
+                dprintf("(%i, %i) ", 
+                        sensor_lookup_table[sensor][running_sensor_bounds[sensor].min], sensor_lookup_table[sensor][running_sensor_bounds[sensor].max]); 
+            }
+            dprintf("\n\n");
+    
+            for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
+                running_sensor_bounds[sensor].min = -1;
+                running_sensor_bounds[sensor].max = 0;
+            }
         }
     }
-
 
     if (calibrating_sensors) {
         for (int row = 0; row < MATRIX_ROWS; row++) {
