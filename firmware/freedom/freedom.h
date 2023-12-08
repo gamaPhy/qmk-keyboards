@@ -53,7 +53,10 @@ typedef struct {
 } kb_config_t;
 
 
+extern bool bootup_calibrated;
 extern kb_config_t kb_config;
+extern uint8_t sensor_lookup_table[SENSOR_COUNT][MAX_ADC_READING];
+extern sensor_bounds_t running_sensor_bounds[SENSOR_COUNT];
 extern bool calibrating_sensors;
 extern const pin_t direct_pins[MATRIX_ROWS][MATRIX_COLS];
 extern const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS];
