@@ -8,7 +8,6 @@
 #include "helpers/sensor_read.h"
 #include "helpers/lookup_table.h"
 
-
 kb_config_t kb_config;
 sensor_bounds_t running_sensor_bounds[SENSOR_COUNT];
 uint8_t sensor_lookup_table[SENSOR_COUNT][MAX_ADC_READING];
@@ -18,7 +17,7 @@ const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS] = PIN_SCAN_MODES;
 const int sensor_nums[MATRIX_ROWS][MATRIX_COLS] = SENSOR_NUMS;
 
 bool bootup_calibrated = false;
-uint8_t boot_count = 0;
+uint8_t startup_count = 0;
 
 bool calibrating_sensors = false;
 
@@ -93,14 +92,14 @@ void keyboard_pre_init_user(void) {
 
 void keyboard_post_init_user(void) {
     debug_enable = true;
-    // have to turn on the rgb again after sensor min values have been calibrated
-    rgblight_sethsv_noeeprom(HSV_BLACK);
+    // have to turn on the rgb again after s min values have been calibrated
     eeconfig_read_kb_datablock(&kb_config);
     create_lookup_table(&kb_config, sensor_lookup_table);
-    for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
-        running_sensor_bounds[sensor].min = -1;
-        running_sensor_bounds[sensor].max = 0;
+    for (int s = 0; s < SENSOR_COUNT; s++) {
+        running_sensor_bounds[s].min = -1;
+        running_sensor_bounds[s].max = 0;
     }
+    rgblight_sethsv_noeeprom(HSV_BLACK);
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
@@ -173,18 +172,19 @@ void matrix_scan_kb(void) {
         key_timer = timer_read();
         
         if (!bootup_calibrated) {
-            boot_count++;
-            if (boot_count == 4) {
-                for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
-                    kb_config.matrix_sensor_bounds[0][sensor].min = running_sensor_bounds[sensor].min;
+            startup_count++;
+            // wait a bit for stable equilibrium, otherwise sensor min values will be off
+            if (startup_count == 2) {
+                for (int s = 0; s < SENSOR_COUNT; s++) {
+                    kb_config.matrix_sensor_bounds[0][s].min = running_sensor_bounds[s].min;
                 }
-                create_lookup_table(&kb_config, sensor_lookup_table);
                 bootup_calibrated = true;
+                create_lookup_table(&kb_config, sensor_lookup_table);
                 rgblight_reload_from_eeprom();
             }
         } else {
-            for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
-                dprintf("(%i,%i) ", running_sensor_bounds[sensor].min, running_sensor_bounds[sensor].max);
+            for (int s = 0; s < SENSOR_COUNT; s++) {
+                dprintf("(%i,%i) ", running_sensor_bounds[s].min, running_sensor_bounds[s].max);
             }
             dprintf("\n");
     
@@ -192,15 +192,15 @@ void matrix_scan_kb(void) {
                     kb_config.matrix_sensor_bounds[0][1].min, kb_config.matrix_sensor_bounds[0][1].max,  
                     kb_config.matrix_sensor_bounds[0][2].min, kb_config.matrix_sensor_bounds[0][2].max  );
     
-            for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
+            for (int s = 0; s < SENSOR_COUNT; s++) {
                 dprintf("(%i, %i) ", 
-                        sensor_lookup_table[sensor][running_sensor_bounds[sensor].min], sensor_lookup_table[sensor][running_sensor_bounds[sensor].max]); 
+                        sensor_lookup_table[s][running_sensor_bounds[s].min], sensor_lookup_table[s][running_sensor_bounds[s].max]); 
             }
             dprintf("\n\n");
     
-            for (int sensor = 0; sensor < SENSOR_COUNT; sensor++) {
-                running_sensor_bounds[sensor].min = -1;
-                running_sensor_bounds[sensor].max = 0;
+            for (int s = 0; s < SENSOR_COUNT; s++) {
+                running_sensor_bounds[s].min = -1;
+                running_sensor_bounds[s].max = 0;
             }
         }
     }

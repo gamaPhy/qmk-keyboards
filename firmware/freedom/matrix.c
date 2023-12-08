@@ -125,16 +125,14 @@ void matrix_read_cols_on_row(matrix_row_t current_matrix[], uint8_t current_row)
         if (pin_mode == DIGITAL) {
             current_row_value |= readPin(pin) ? 0 : row_shifter;
         }  
-        else if (!kb_config.calibrated) {
-            // analog keys don't operate
+        else if (!kb_config.calibrated || !bootup_calibrated) {
+            // analog keys don't operate, but still scan matrix for data that other parts of code use
+            scan_pin_analog(pin, current_row, col_index);
             current_row_value |= 0;
         }
         else if (pin_mode == ANALOG && !calibrating_sensors) {
             if (scan_pin_analog(pin, current_row, col_index)) {
                 current_row_value |= row_shifter;
-                if (!bootup_calibrated) {
-                    current_row_value |= 0;
-                }
             }
         }
     }
