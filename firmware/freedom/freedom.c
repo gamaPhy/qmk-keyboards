@@ -207,7 +207,6 @@ void matrix_scan_kb(void) {
                 running_sensor_bounds[s].max = 0;
             }
         }
->>>>>>> main
     }
 
     if (calibrating_sensors) {
