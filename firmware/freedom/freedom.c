@@ -91,15 +91,14 @@ void keyboard_pre_init_user(void) {
 }
 
 void keyboard_post_init_user(void) {
+    rgblight_sethsv_noeeprom(HSV_BLACK);
     debug_enable = true;
     // have to turn on the rgb again after s min values have been calibrated
     eeconfig_read_kb_datablock(&kb_config);
-    create_lookup_table(&kb_config, sensor_lookup_table);
     for (int s = 0; s < SENSOR_COUNT; s++) {
         running_sensor_bounds[s].min = -1;
         running_sensor_bounds[s].max = 0;
     }
-    rgblight_sethsv_noeeprom(HSV_BLACK);
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
