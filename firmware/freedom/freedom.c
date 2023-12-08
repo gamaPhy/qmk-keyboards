@@ -91,14 +91,10 @@ void keyboard_pre_init_user(void) {
 }
 
 void keyboard_post_init_user(void) {
+    // have to turn on the rgb again after sensor min values have been calibrated
     rgblight_sethsv_noeeprom(HSV_BLACK);
     debug_enable = true;
-    // have to turn on the rgb again after s min values have been calibrated
     eeconfig_read_kb_datablock(&kb_config);
-    // need a dummy adc_read before enabling temperature sensor 
-    // https://github.com/qmk/qmk_firmware/pull/19453#issuecomment-1383271354
-    adc_read(TO_MUX(4, 0));
-    adcRPEnableTS(&ADCD1);
     for (int s = 0; s < SENSOR_COUNT; s++) {
         running_sensor_bounds[s].min = -1;
         running_sensor_bounds[s].max = 0;
@@ -185,7 +181,7 @@ void matrix_scan_kb(void) {
                 rgblight_reload_from_eeprom();
             }
         } else {
-            dprintf("\nTemperature: %i\n", adc_read(TO_MUX(4, 0)));
+            // dprintf("\nTemperature: %i\n", adc_read(TO_MUX(4, 0)));
 
             for (int s = 0; s < SENSOR_COUNT; s++) {
                 dprintf("(%i,%i) ", running_sensor_bounds[s].min, running_sensor_bounds[s].max);
