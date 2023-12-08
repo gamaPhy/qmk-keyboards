@@ -8,8 +8,8 @@
 
 extern matrix_row_t raw_matrix[MATRIX_ROWS]; // raw values
 extern matrix_row_t matrix[MATRIX_ROWS];     // debounced values
-extern uint16_t     min1, max1, min2, max2, min3, max3;
 
+sensor_bounds_t running_sensor_bounds[SENSOR_COUNT];
 uint8_t sensor_lookup_table[SENSOR_COUNT][MAX_ADC_READING];
 
 void matrix_init_custom(void) {
@@ -33,29 +33,10 @@ bool scan_pin_analog(pin_t pin, uint8_t row, uint8_t col) {
     uint16_t sensor_value = oversample(pin);
     uint8_t key_x = sensor_lookup_table[sensor_nums[row][col]][sensor_value];
 
-    if (col == 0) {
-        if (sensor_value > max1) {
-            max1 = sensor_value;
-        }
-        if (sensor_value < min1) {
-            min1 = sensor_value;
-        }
-    }
-    if (col == 1) {
-        if (sensor_value > max2) {
-            max2 = sensor_value;
-        }
-        if (sensor_value < min2) {
-            min2 = sensor_value;
-        }
-    }
-    if (col == 2) {
-        if (sensor_value > max3) {
-            max3 = sensor_value;
-        }
-        if (sensor_value < min3) {
-            min3 = sensor_value;
-        }
+    if (sensor_value > running_sensor_bounds[sensor_nums[row][col]].max) {
+        running_sensor_bounds[sensor_nums[row][col]].max = sensor_value;
+    } else if (sensor_value < running_sensor_bounds[sensor_nums[row][col]].min) {
+        running_sensor_bounds[sensor_nums[row][col]].min = sensor_value; 
     }
 
     uint16_t actuation_point;
@@ -143,9 +124,10 @@ void matrix_read_cols_on_row(matrix_row_t current_matrix[], uint8_t current_row)
         pin_scan_mode_t pin_mode = pin_scan_modes[current_row][col_index];
         if (pin_mode == DIGITAL) {
             current_row_value |= readPin(pin) ? 0 : row_shifter;
-        } 
-        else if (!kb_config.calibrated) {
-            // analog keys don't operate if they aren't calibrated
+        }  
+        else if (!kb_config.calibrated || !bootup_calibrated) {
+            // analog keys don't operate, but still scan matrix for data that other parts of code use
+            scan_pin_analog(pin, current_row, col_index);
             current_row_value |= 0;
         }
         else if (pin_mode == ANALOG && !calibrating_sensors) {

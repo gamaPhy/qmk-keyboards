@@ -8,17 +8,18 @@
 #include "helpers/sensor_read.h"
 #include "helpers/lookup_table.h"
 
-bool calibrating_sensors = false;
-
 kb_config_t kb_config;
+sensor_bounds_t running_sensor_bounds[SENSOR_COUNT];
+uint8_t sensor_lookup_table[SENSOR_COUNT][MAX_ADC_READING];
 
 const pin_t direct_pins[MATRIX_ROWS][MATRIX_COLS] = DIRECT_PINS;
 const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS] = PIN_SCAN_MODES;
 const int sensor_nums[MATRIX_ROWS][MATRIX_COLS] = SENSOR_NUMS;
 
-extern uint8_t sensor_lookup_table[SENSOR_COUNT][MAX_ADC_READING];
+bool bootup_calibrated = false;
+uint8_t startup_count = 0;
 
-uint16_t min1, max1, min2, max2, min3, max3;
+bool calibrating_sensors = false;
 
 // Our bootmagic implementation allows optionally clearing EEPROM depending on 
 // whether the BOOTMAGIC_CLEAR button is held down along with the original BOOTMAGIC_LITE button.
@@ -84,11 +85,21 @@ bool calibration_successful(void) {
     return true;
 }
 
+void keyboard_pre_init_user(void) {
+    setPinOutput(PICO_LED);
+    setPinOutput(WS2812_DI_PIN);
+}
+
 void keyboard_post_init_user(void) {
     debug_enable = true;
-    setPinOutput(PICO_LED);
+    // have to turn on the rgb again after s min values have been calibrated
     eeconfig_read_kb_datablock(&kb_config);
     create_lookup_table(&kb_config, sensor_lookup_table);
+    for (int s = 0; s < SENSOR_COUNT; s++) {
+        running_sensor_bounds[s].min = -1;
+        running_sensor_bounds[s].max = 0;
+    }
+    rgblight_sethsv_noeeprom(HSV_BLACK);
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
@@ -159,17 +170,39 @@ void matrix_scan_kb(void) {
     static uint16_t key_timer;
     if (timer_elapsed(key_timer) > 1000) {
         key_timer = timer_read();
-        dprintf("(%i, %i) (%i, %i) (%i, %i)\n", min1, max1, min2, max2, min3, max3);
-        dprintf("(%i, %i) (%i, %i) (%i, %i)\n\n", 
-                sensor_lookup_table[0][min1], sensor_lookup_table[0][max1], 
-                sensor_lookup_table[1][min2], sensor_lookup_table[1][max2], 
-                sensor_lookup_table[2][min3], sensor_lookup_table[2][max3]);
-        min1 = -1;
-        max1 = 0;
-        min2 = -1;
-        max2 = 0;
-        min3 = -1;
-        max3 = 0;
+        
+        if (!bootup_calibrated) {
+            startup_count++;
+            // wait a bit for stable equilibrium, otherwise sensor min values will be off
+            if (startup_count == 2) {
+                for (int s = 0; s < SENSOR_COUNT; s++) {
+                    kb_config.matrix_sensor_bounds[0][s].min = running_sensor_bounds[s].min;
+                }
+                bootup_calibrated = true;
+                create_lookup_table(&kb_config, sensor_lookup_table);
+                rgblight_reload_from_eeprom();
+            }
+        } else {
+            for (int s = 0; s < SENSOR_COUNT; s++) {
+                dprintf("(%i,%i) ", running_sensor_bounds[s].min, running_sensor_bounds[s].max);
+            }
+            dprintf("\n");
+    
+            dprintf("(%i, %i) (%i, %i) (%i, %i)\n", kb_config.matrix_sensor_bounds[0][0].min, kb_config.matrix_sensor_bounds[0][0].max, 
+                    kb_config.matrix_sensor_bounds[0][1].min, kb_config.matrix_sensor_bounds[0][1].max,  
+                    kb_config.matrix_sensor_bounds[0][2].min, kb_config.matrix_sensor_bounds[0][2].max  );
+    
+            for (int s = 0; s < SENSOR_COUNT; s++) {
+                dprintf("(%i, %i) ", 
+                        sensor_lookup_table[s][running_sensor_bounds[s].min], sensor_lookup_table[s][running_sensor_bounds[s].max]); 
+            }
+            dprintf("\n\n");
+    
+            for (int s = 0; s < SENSOR_COUNT; s++) {
+                running_sensor_bounds[s].min = -1;
+                running_sensor_bounds[s].max = 0;
+            }
+        }
     }
 
     if (calibrating_sensors) {
