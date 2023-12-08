@@ -11,7 +11,7 @@
 // Sensor: SLSS49E, 4.4V VCC, 2.5V ADC_VREF
 #define SENSOR_BASE_OFFSET_4V4_2V5 275
 // Sensor: SLSS49E, 3.3V VCC, 3.3V ADC_VREF
-#define PICO_SENSOR_BASE_OFFSET 175
+#define PICO_SENSOR_BASE_OFFSET 160
 
 // A sensor at X_MIN_mm is when the switch is completely released. A sensor at X_MAX_mm is completely pressed.
 #define X_MIN_mm (float)0
