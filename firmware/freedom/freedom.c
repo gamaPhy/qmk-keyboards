@@ -5,10 +5,10 @@
 #include <limits.h>
 
 #include "freedom.h"
-#include "virtser.h"
 
 #include "helpers/sensor_read.h"
 #include "helpers/lookup_table.h"
+#include "helpers/serial_config.h"
 
 kb_config_t kb_config;
 sensor_bounds_t running_sensor_bounds[SENSOR_COUNT];
@@ -167,38 +167,9 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
     return true;
 }
 
-void virtser_recv(const uint8_t ch) {
-//   static char line[XMK_SHELL_LINE_LEN];
-//   static uint8_t line_index = 0;
-  if (ch == '\r') {
-    dprintf("virtser_recv: ch: %3u '\\r' \n", ch);
-    // dprintf("virtser_recv: i: %3u, ch: %3u '\\r' \n", line_index, ch);
-    // line[line_index] = '\0';
-    // xmk_shell(line);
-    // line_index = 0;
-  } else if (ch == '\n') {
-    dprintf("virtser_recv: ch: %3u '\\n' \n", ch);
-  } else {
-    dprintf("virtser_recv: ch: %3u '%c'\n", ch, ch);
-    // if (line_index < (XMK_SHELL_LINE_LEN - 1)) {
-    //   line[line_index] = ch;
-    //   line_index++;
-    // }
-  }
-}
-
 void matrix_scan_kb(void) {
     static uint16_t key_timer;
     if (timer_elapsed(key_timer) > 1000) {
-        // for (int i = 0; i < 10; i++) {
-        //     for (int j = 0; j < i; j++) {
-        //         virtser_send(0b00100001);
-        //     }
-        //     virtser_send(10);
-        //     virtser_send(13);
-        // }
-        // virtser_send(10);
-        // virtser_send(0x1b);
         key_timer = timer_read();
         
         if (!bootup_calibrated) {

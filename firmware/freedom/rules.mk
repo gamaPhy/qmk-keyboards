@@ -16,3 +16,4 @@ SRC += matrix.c
 SRC += analog.c
 SRC += helpers/sensor_read.c
 SRC += helpers/lookup_table.c
+SRC += helpers/serial_config.c
