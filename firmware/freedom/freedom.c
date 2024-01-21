@@ -8,7 +8,7 @@
 
 #include "helpers/sensor_read.h"
 #include "helpers/lookup_table.h"
-#include "helpers/serial_config.h"
+#include "serial_configurator/serial_configurator.h"
 
 kb_config_t kb_config;
 sensor_bounds_t running_sensor_bounds[SENSOR_COUNT];

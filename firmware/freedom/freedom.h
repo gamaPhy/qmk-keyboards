@@ -52,7 +52,6 @@ typedef struct {
     sensor_scaling_params_t matrix_scaling_params[MATRIX_ROWS][MATRIX_COLS];
 } kb_config_t;
 
-
 extern bool bootup_calibrated;
 extern kb_config_t kb_config;
 extern uint8_t sensor_lookup_table[SENSOR_COUNT][MAX_ADC_READING];
