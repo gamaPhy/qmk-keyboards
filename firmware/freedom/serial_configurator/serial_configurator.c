@@ -57,13 +57,12 @@ void print_main_menu(void) {
 }
 
 void print_actuation_menu(void) {
-    bool per_key = kb_config.use_per_key_settings;
     char* per_key_settings;
         
-    if (per_key) {
-        per_key_settings = "TRUE";
+    if (kb_config.use_per_key_settings) {
+        per_key_settings = "[X]";
     } else {
-        per_key_settings = "FALSE";
+        per_key_settings = "[ ]";
     }
 
     char* menu_strings[] = {
