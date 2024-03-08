@@ -131,18 +131,17 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
       if (calibration_successful()) {
         rgblight_reload_from_eeprom();
-        writePinLow(PICO_LED);
         kb_config.calibrated = true;
         create_lookup_table(&kb_config, sensor_lookup_table);
-
         kb_config_save();
       } else {
         if (kb_config.calibrated) {
           // return to state before calibration started
           rgblight_reload_from_eeprom();
-          writePinLow(PICO_LED);
+          eeconfig_read_kb_datablock(&kb_config);
         }
       }
+      writePinLow(PICO_LED);
     }
     return false;
   case KC_TOGGLE_RAPID_TRIGGER:
