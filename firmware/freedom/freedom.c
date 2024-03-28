@@ -8,6 +8,23 @@
 #include "helpers/lookup_table.h"
 #include "helpers/sensor_read.h"
 
+#ifdef RGB_MATRIX_ENABLE
+led_config_t g_led_config = { {
+    {  7,      8,      9 },
+    {  NO_LED,      NO_LED,      NO_LED },
+}, {
+    {0  ,  0}, {75 ,  0}, {149,  0}, 
+    // Underglow
+    {0  , 22}, {76 , 22}, {144, 22}, {0  , 28}, {75 , 29}, {149, 22}, {149, 23}
+}, {
+    // Key matrix
+    1, 1, 1,
+
+    // Underglow
+    2, 2, 2, 2, 2, 2, 2,
+} };
+#endif
+
 kb_config_t kb_config;
 sensor_bounds_t running_sensor_bounds[SENSOR_COUNT];
 uint8_t sensor_lookup_table[SENSOR_COUNT][MAX_ADC_READING];
