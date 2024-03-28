@@ -102,6 +102,10 @@ void keyboard_post_init_user(void) {
     running_sensor_bounds[s].min = -1;
     running_sensor_bounds[s].max = 0;
   }
+  // need a dummy adc_read before enabling temperature sensor
+  // https://github.com/qmk/qmk_firmware/pull/19453#issuecomment-1383271354
+  adc_read(TO_MUX(4, 0));
+  adcRPEnableTS(&ADCD1);
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
@@ -173,6 +177,7 @@ void matrix_scan_kb(void) {
   if (timer_elapsed(key_timer) > 1000) {
     key_timer = timer_read();
 
+    dprintf("\nTemperature: %i\n", adc_read(TO_MUX(4, 0)));
     dprintf("\nCalibrated range:\n(%i, %i) (%i, %i) (%i, %i)\n\n",
             kb_config.matrix_sensor_bounds[0][0].min,
             kb_config.matrix_sensor_bounds[0][0].max,
