@@ -18,7 +18,7 @@ led_config_t g_led_config = { {
     {0  , 22}, {76 , 22}, {144, 22}, {0  , 28}, {75 , 29}, {149, 22}, {149, 23}
 }, {
     // Key matrix
-    1, 1, 1,
+    4, 4, 4,
 
     // Underglow
     2, 2, 2, 2, 2, 2, 2,
@@ -111,7 +111,7 @@ void keyboard_pre_init_user(void) {
 }
 
 void keyboard_post_init_user(void) {
-  rgblight_sethsv_noeeprom(HSV_BLACK);
+  rgb_matrix_sethsv_noeeprom(HSV_BLACK);
   debug_enable = true;
   // have to turn on the rgb again after s min values have been calibrated
   eeconfig_read_kb_datablock(&kb_config);
@@ -133,7 +133,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
   case KC_CALIBRATE:
     if (record->event.pressed) {
-      rgblight_sethsv_noeeprom(HSV_BLACK);
+      rgb_matrix_sethsv_noeeprom(HSV_BLACK);
       writePinHigh(PICO_LED);
 
       // this will disable analog keys while calibrating
@@ -151,14 +151,14 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
       calibrating_sensors = false;
 
       if (calibration_successful()) {
-        rgblight_reload_from_eeprom();
+        rgb_matrix_reload_from_eeprom();
         kb_config.calibrated = true;
         create_lookup_table(&kb_config, sensor_lookup_table);
         kb_config_save();
       } else {
         if (kb_config.calibrated) {
           // return to state before calibration started
-          rgblight_reload_from_eeprom();
+          rgb_matrix_reload_from_eeprom();
           eeconfig_read_kb_datablock(&kb_config);
         }
       }
@@ -214,7 +214,7 @@ void matrix_scan_kb(void) {
         }
         bootup_calibrated = true;
         create_lookup_table(&kb_config, sensor_lookup_table);
-        rgblight_reload_from_eeprom();
+        rgb_matrix_reload_from_eeprom();
       }
     } else {
       dprintf("Current reading range within 1 second:\n");
@@ -223,6 +223,7 @@ void matrix_scan_kb(void) {
                 running_sensor_bounds[s].max);
       }
       dprintf("\n\n");
+      dprintf("Current speed: %i\n", rgb_matrix_get_speed());
 
       dprintf("Key press distance (0 - 80):\n ");
       for (int s = 0; s < SENSOR_COUNT; s++) {
@@ -239,7 +240,7 @@ void matrix_scan_kb(void) {
     }
 
     dprintf(
-        "################################################################\n");
+        "\n################################################################\n");
   }
 
   if (calibrating_sensors) {
