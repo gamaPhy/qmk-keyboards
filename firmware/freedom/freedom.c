@@ -9,22 +9,48 @@
 #include "helpers/sensor_read.h"
 
 #ifdef RGB_MATRIX_ENABLE
-led_config_t g_led_config = { {
-    {  12,      13,      14 },
-    {  NO_LED,      NO_LED,      NO_LED },
-}, {
-    // Underglow
-    {112, 15}, {61, 12}, {17, 22}, {12, 38}, {37, 44}, {80, 57}, {112, 43}, {143, 57}, {186, 44}, {211, 38}, {206, 22}, {169, 11},
-    // Key matrix
-    {177, 27}, {112, 27}, {46, 27},
-}, {
-    // Underglow
-    2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2,
-    2, 2,
-    // Key matrix
-    4, 4, 4,
-} };
+led_config_t g_led_config = {{
+                                 {12, 13, 14},
+                                 {NO_LED, NO_LED, NO_LED},
+                             },
+                             {
+                                 // Underglow
+                                 {112, 15},
+                                 {61, 12},
+                                 {17, 22},
+                                 {12, 38},
+                                 {37, 44},
+                                 {80, 57},
+                                 {112, 43},
+                                 {143, 57},
+                                 {186, 44},
+                                 {211, 38},
+                                 {206, 22},
+                                 {169, 11},
+                                 // Key matrix
+                                 {177, 27},
+                                 {112, 27},
+                                 {46, 27},
+                             },
+                             {
+                                 // Underglow
+                                 2,
+                                 2,
+                                 2,
+                                 2,
+                                 2,
+                                 2,
+                                 2,
+                                 2,
+                                 2,
+                                 2,
+                                 2,
+                                 2,
+                                 // Key matrix
+                                 4,
+                                 4,
+                                 4,
+                             }};
 #endif
 
 kb_config_t kb_config;
@@ -224,8 +250,6 @@ void matrix_scan_kb(void) {
         dprintf("(%i,%i) ", running_sensor_bounds[s].min,
                 running_sensor_bounds[s].max);
       }
-      dprintf("\n\n");
-      dprintf("Current speed: %i\n", rgb_matrix_get_speed());
 
       dprintf("Key press distance (0 - 80):\n ");
       for (int s = 0; s < SENSOR_COUNT; s++) {

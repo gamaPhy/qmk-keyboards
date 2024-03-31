@@ -10,7 +10,7 @@
 
 // Set to maximum number which still results in matrix scan frequency greater
 // than 500 since this means at most 2ms matrix scan frequency
-#define OVERSAMPLING_TOTAL_SAMPLES 70
+#define OVERSAMPLING_TOTAL_SAMPLES 69
 
 #define PIN_SCAN_MODES                                                         \
   {                                                                            \
