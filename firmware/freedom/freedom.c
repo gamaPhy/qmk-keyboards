@@ -8,6 +8,25 @@
 #include "helpers/lookup_table.h"
 #include "helpers/sensor_read.h"
 
+#ifdef RGB_MATRIX_ENABLE
+led_config_t g_led_config = { {
+    {  12,      13,      14 },
+    {  NO_LED,      NO_LED,      NO_LED },
+}, {
+    // Underglow
+    {112, 15}, {61, 12}, {17, 22}, {12, 38}, {37, 44}, {80, 57}, {112, 43}, {143, 57}, {186, 44}, {211, 38}, {206, 22}, {169, 11},
+    // Key matrix
+    {177, 27}, {112, 27}, {46, 27},
+}, {
+    // Underglow
+    2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2,
+    2, 2,
+    // Key matrix
+    4, 4, 4,
+} };
+#endif
+
 kb_config_t kb_config;
 sensor_bounds_t running_sensor_bounds[SENSOR_COUNT];
 uint8_t sensor_lookup_table[SENSOR_COUNT][MAX_ADC_READING];
@@ -48,14 +67,14 @@ void eeconfig_init_kb(void) {
   kb_config.global_actuation_settings.rapid_trigger = true;
   kb_config.global_actuation_settings.actuation_point_dmm = 6;
   kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm = 2;
-  kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm = 5;
+  kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm = 4;
   for (int i = 0; i < SENSOR_COUNT; i++) {
     kb_config.per_key_actuation_settings[i].rapid_trigger = true;
     kb_config.per_key_actuation_settings[i].actuation_point_dmm = 6;
     kb_config.per_key_actuation_settings[i]
         .rapid_trigger_press_sensitivity_dmm = 2;
     kb_config.per_key_actuation_settings[i]
-        .rapid_trigger_release_sensitivity_dmm = 5;
+        .rapid_trigger_release_sensitivity_dmm = 4;
   }
   for (int row = 0; row < MATRIX_ROWS; row++) {
     for (int col = 0; col < MATRIX_COLS; col++) {
@@ -94,7 +113,7 @@ void keyboard_pre_init_user(void) {
 }
 
 void keyboard_post_init_user(void) {
-  rgblight_sethsv_noeeprom(HSV_BLACK);
+  rgb_matrix_sethsv_noeeprom(HSV_BLACK);
   debug_enable = true;
   // have to turn on the rgb again after s min values have been calibrated
   eeconfig_read_kb_datablock(&kb_config);
@@ -116,7 +135,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
   case KC_CALIBRATE:
     if (record->event.pressed) {
-      rgblight_sethsv_noeeprom(HSV_BLACK);
+      rgb_matrix_sethsv_noeeprom(HSV_BLACK);
       writePinHigh(PICO_LED);
 
       // this will disable analog keys while calibrating
@@ -134,14 +153,14 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
       calibrating_sensors = false;
 
       if (calibration_successful()) {
-        rgblight_reload_from_eeprom();
+        rgb_matrix_reload_from_eeprom();
         kb_config.calibrated = true;
         create_lookup_table(&kb_config, sensor_lookup_table);
         kb_config_save();
       } else {
         if (kb_config.calibrated) {
           // return to state before calibration started
-          rgblight_reload_from_eeprom();
+          rgb_matrix_reload_from_eeprom();
           eeconfig_read_kb_datablock(&kb_config);
         }
       }
@@ -197,7 +216,7 @@ void matrix_scan_kb(void) {
         }
         bootup_calibrated = true;
         create_lookup_table(&kb_config, sensor_lookup_table);
-        rgblight_reload_from_eeprom();
+        rgb_matrix_reload_from_eeprom();
       }
     } else {
       dprintf("Current reading range within 1 second:\n");
@@ -206,6 +225,7 @@ void matrix_scan_kb(void) {
                 running_sensor_bounds[s].max);
       }
       dprintf("\n\n");
+      dprintf("Current speed: %i\n", rgb_matrix_get_speed());
 
       dprintf("Key press distance (0 - 80):\n ");
       for (int s = 0; s < SENSOR_COUNT; s++) {
@@ -222,7 +242,7 @@ void matrix_scan_kb(void) {
     }
 
     dprintf(
-        "################################################################\n");
+        "\n################################################################\n");
   }
 
   if (calibrating_sensors) {

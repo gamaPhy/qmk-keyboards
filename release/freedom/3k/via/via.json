@@ -8,7 +8,7 @@
   },
   "keycodes": ["qmk_lighting"],
   "menus": [
-    "qmk_rgblight",
+      "qmk_rgb_matrix",
     {
       "label": "Actuation settings",
       "content": [
