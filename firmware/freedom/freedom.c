@@ -67,14 +67,14 @@ void eeconfig_init_kb(void) {
   kb_config.global_actuation_settings.rapid_trigger = true;
   kb_config.global_actuation_settings.actuation_point_dmm = 6;
   kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm = 2;
-  kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm = 5;
+  kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm = 4;
   for (int i = 0; i < SENSOR_COUNT; i++) {
     kb_config.per_key_actuation_settings[i].rapid_trigger = true;
     kb_config.per_key_actuation_settings[i].actuation_point_dmm = 6;
     kb_config.per_key_actuation_settings[i]
         .rapid_trigger_press_sensitivity_dmm = 2;
     kb_config.per_key_actuation_settings[i]
-        .rapid_trigger_release_sensitivity_dmm = 5;
+        .rapid_trigger_release_sensitivity_dmm = 4;
   }
   for (int row = 0; row < MATRIX_ROWS; row++) {
     for (int col = 0; col < MATRIX_COLS; col++) {
