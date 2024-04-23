@@ -45,7 +45,8 @@
 // GPIO corresponding to Rasberry Pi Pico LED
 #define PICO_LED GP25
 
-#define WS2812_DI_PIN GP12
+// TODO: change to GP12
+#define WS2812_DI_PIN GP13
 #define WS2812_PIO_USE_PIO0
 #define RGB_MATRIX_LED_COUNT 15
 
@@ -157,16 +158,32 @@
 // key location to simulate a river flowing
 #define ENABLE_RGB_MATRIX_EFFECT_MAX
 
-#define RGB_MATRIX_TIMEOUT 0 // number of milliseconds to wait until rgb automatically turns off
-//#define RGB_MATRIX_SLEEP // turn off effects when suspended
-#define RGB_MATRIX_LED_PROCESS_LIMIT (RGB_MATRIX_LED_COUNT + 4) / 5 // limits the number of LEDs to process in an animation per task run (increases keyboard responsiveness)
-#define RGB_MATRIX_LED_FLUSH_LIMIT 32 // limits in milliseconds how frequently an animation will update the LEDs. 16 (16ms) is equivalent to limiting to 60fps (increases keyboard responsiveness)
-#define RGB_MATRIX_MAXIMUM_BRIGHTNESS 255 // limits maximum brightness of LEDs to 200 out of 255. If not defined maximum brightness is set to 255
-#define RGB_MATRIX_DEFAULT_ON true // Sets the default enabled state, if none has been set
+#define RGB_MATRIX_TIMEOUT                                                     \
+  0 // number of milliseconds to wait until rgb automatically turns off
+// #define RGB_MATRIX_SLEEP // turn off effects when suspended
+#define RGB_MATRIX_LED_PROCESS_LIMIT                                           \
+  (RGB_MATRIX_LED_COUNT + 4) /                                                 \
+      5 // limits the number of LEDs to process in an animation per task run
+        // (increases keyboard responsiveness)
+#define RGB_MATRIX_LED_FLUSH_LIMIT                                             \
+  32 // limits in milliseconds how frequently an animation will update the LEDs.
+     // 16 (16ms) is equivalent to limiting to 60fps (increases keyboard
+     // responsiveness)
+#define RGB_MATRIX_MAXIMUM_BRIGHTNESS                                          \
+  255 // limits maximum brightness of LEDs to 200 out of 255. If not defined
+      // maximum brightness is set to 255
+#define RGB_MATRIX_DEFAULT_ON                                                  \
+  true // Sets the default enabled state, if none has been set
 #define RGB_MATRIX_DEFAULT_MODE RGB_MATRIX_CYCLE_PINWHEEL
-#define RGB_MATRIX_DEFAULT_HUE 15 // Sets the default hue value, if none has been set
-#define RGB_MATRIX_DEFAULT_SAT 240 // Sets the default saturation value, if none has been set
-#define RGB_MATRIX_DEFAULT_VAL 240 // Sets the default brightness value, if none has been set
-#define RGB_MATRIX_DEFAULT_SPD 25 // Sets the default animation speed, if none has been set
-#define RGB_TRIGGER_ON_KEYDOWN      // Triggers RGB keypress events on key down. This makes RGB control feel more responsive. This may cause RGB to not function properly on some boards
-
+#define RGB_MATRIX_DEFAULT_HUE                                                 \
+  15 // Sets the default hue value, if none has been set
+#define RGB_MATRIX_DEFAULT_SAT                                                 \
+  240 // Sets the default saturation value, if none has been set
+#define RGB_MATRIX_DEFAULT_VAL                                                 \
+  240 // Sets the default brightness value, if none has been set
+#define RGB_MATRIX_DEFAULT_SPD                                                 \
+  25 // Sets the default animation speed, if none has been set
+#define RGB_TRIGGER_ON_KEYDOWN // Triggers RGB keypress events on key down. This
+                               // makes RGB control feel more responsive. This
+                               // may cause RGB to not function properly on some
+                               // boards
