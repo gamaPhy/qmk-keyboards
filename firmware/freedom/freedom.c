@@ -253,6 +253,7 @@ void matrix_scan_kb(void) {
         dprintf("(%i,%i) ", running_sensor_bounds[s].min,
                 running_sensor_bounds[s].max);
       }
+      dprintf("\n\n");
 
       dprintf("Key press distance (0 - 80):\n ");
       for (int s = 0; s < SENSOR_COUNT; s++) {
