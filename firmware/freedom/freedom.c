@@ -30,9 +30,10 @@ led_config_t g_led_config = {{
                                  {206, 22},
                                  {169, 11},
                                  // Key matrix
-                                 {177, 27},
+                                 // TODO: swap these
                                  {112, 27},
                                  {46, 27},
+                                 {177, 27},
                              },
                              {
                                  // Underglow
