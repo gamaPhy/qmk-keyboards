@@ -263,14 +263,14 @@ void matrix_scan_kb(void) {
       }
       dprintf("\n\n");
 
+
       for (int s = 0; s < SENSOR_COUNT; s++) {
         running_sensor_bounds[s].min = -1;
         running_sensor_bounds[s].max = 0;
       }
     }
 
-    dprintf("################################################################");
-    dprintf("\n\n");
+    dprintf("#######################################\n\n");
   }
 
   if (calibrating_sensors) {
