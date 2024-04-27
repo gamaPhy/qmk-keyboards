@@ -23,37 +23,44 @@ void send_string_serial(char *str) {
   }
 }
 
-void print_strings_serial(char *lines[]) {
-  int i;
-  while (lines[i] != NULL) {
-    send_string_serial(lines[i]);
-    i++;
-  }
-}
-
-void cursor_home(void) { send_string_serial("\033[H"); }
-
 void cursor_up(void) { send_string_serial("\033[1A"); }
 
 void cursor_down(void) { send_string_serial("\033[1B"); }
 
-void cursor_right(int cols) {
-  char cols_string[5];
-  sprintf(cols_string, "\033[%dC", cols);
-  send_string_serial(cols_string);
-}
+void cursor_right(void) { send_string_serial("\033[1C"); }
+
+void cursor_left(void) { send_string_serial("\033[1D"); }
 
 void clear_terminal(void) { send_string_serial("\033[2J"); }
+
+void cursor_home(void) { send_string_serial("\033[H"); }
 
 void reset_terminal(void) {
   clear_terminal();
   cursor_home();
 }
 
+void print_strings_serial(char *lines[]) {
+  int i;
+  while (lines[i] != NULL) {
+    send_string_serial(lines[i]);
+    i++;
+  }
+  cursor_right();
+}
+
 void print_main_menu(void) {
-  char *menu_strings[] = {
-      NL, "MAIN MENU",        NL, NL,  "[A] Actuation Settings",
-      NL, "[L] LED Settings", NL, NULL};
+  char *menu_strings[] = {NL,
+                          " MAIN MENU",
+                          NL,
+                          NL,
+                          " [A] Actuation Settings",
+                          NL,
+                          NL,
+                          " [L] LED Settings",
+                          NL,
+                          NL,
+                          NULL};
 
   print_strings_serial(menu_strings);
 }
@@ -80,41 +87,54 @@ void print_actuation_menu(void) {
           kb_config.global_actuation_settings.actuation_point_dmm);
 
   char *menu_strings[] = {NL,
-                          "MAIN MENU -> ACTUATION SETTINGS",
+                          " MAIN MENU -> ACTUATION SETTINGS",
                           NL,
                           NL,
-                          "[P] Per-Key Settings: ",
+                          " [P] Per-Key Settings: ",
                           per_key_settings,
                           NL,
-                          "[R] Rapid Trigger: ",
+                          NL,
+                          " [R] Rapid Trigger: ",
                           rapid_trigger_setting,
                           NL,
-                          "[A] Actuation Point (1 - 40): ",
+                          NL,
+                          " [A] Actuation Point (1 - 40): ",
                           actuation_setting,
                           NL,
-                          "[B] BACK",
+                          NL,
+                          " [B] BACK",
+                          NL,
                           NL,
                           NULL};
 
   print_strings_serial(menu_strings);
 }
 
-void print_set_actuation(int actuation_setpoint_dmm) { 
-  char actuation_setting[2];
-  sprintf(actuation_setting, "%d",
-          actuation_setpoint_dmm);
-
-  char *menu_strings[] = {
-      NL, 
-      "[C] Cancel",
-      NL, 
-      "New actuation point (1 - 40): ",
-      actuation_setting,
-      NULL};
-  print_strings_serial(menu_strings); 
+void print_set_actuation(char *new_actuation_setpoint) {
+  char nice[69] = {'\0'};
+  if (new_actuation_setpoint[0] == '6' && new_actuation_setpoint[1] == '9') {
+    strcpy(nice, "              Nice.");
+  }
+  char *menu_strings[] = {NL,
+                          " ----------------------------------------",
+                          NL,
+                          NL,
+                          " [C] Collapse",
+                          NL,
+                          NL,
+                          " [Enter] Confirm",
+                          nice,
+                          NL,
+                          NL,
+                          " New Actuation Point (1 - 40): ",
+                          new_actuation_setpoint,
+                          NULL};
+  print_strings_serial(menu_strings);
+  cursor_left();
 }
 
-void display_menu(enum Menu state, int actuation_setpoint_dmm) {
+void display_menu(enum Menu state, int actuation_setpoint_dmm,
+                  char *new_actuation_setpoint) {
   reset_terminal();
 
   switch (state) {
@@ -126,7 +146,7 @@ void display_menu(enum Menu state, int actuation_setpoint_dmm) {
     break;
   case INPUT_ACTUATION:
     print_actuation_menu();
-    print_set_actuation(actuation_setpoint_dmm);
+    print_set_actuation(new_actuation_setpoint);
     break;
   case LIGHTING:
     break;
@@ -135,9 +155,34 @@ void display_menu(enum Menu state, int actuation_setpoint_dmm) {
   }
 }
 
+bool setpoint_valid(char *new_actuation_setpoint) {
+  if ('1' <= new_actuation_setpoint[0] && new_actuation_setpoint[0] <= '3') {
+    if ('0' <= new_actuation_setpoint[1] && new_actuation_setpoint[1] <= '9') {
+      return true;
+    }
+  }
+  if (new_actuation_setpoint[0] == '4' && new_actuation_setpoint[1] == '0') {
+    return true;
+  }
+  return false;
+}
+
+// assumes that `new_actuation_setpoint` holds a valid value
+int to_int(char *new_actuation_setpoint) {
+  // single digit value
+  if (new_actuation_setpoint[1] == '\0') {
+    return new_actuation_setpoint[0] - '0';
+  }
+  int first_digit = new_actuation_setpoint[0] - '0';
+  int second_digit = new_actuation_setpoint[1] - '0';
+  return first_digit * 10 + second_digit;
+}
+
 void handle_menu(const uint8_t ch) {
   static enum Menu state = MAIN;
-  int actuation_setpoint_dmm = kb_config.global_actuation_settings.actuation_point_dmm;
+  static char new_actuation_setpoint[2] = {'\0'};
+  int actuation_setpoint_dmm =
+      kb_config.global_actuation_settings.actuation_point_dmm;
 
   switch (state) {
   case MAIN:
@@ -162,6 +207,8 @@ void handle_menu(const uint8_t ch) {
       state = MAIN;
     } else if (ch == 'c' || ch == 'C') {
       state = ACTUATION;
+      new_actuation_setpoint[0] = '\0';
+      new_actuation_setpoint[1] = '\0';
     } else if (ch == 'p' || ch == 'P') {
       kb_config.use_per_key_settings = !kb_config.use_per_key_settings;
       state = ACTUATION;
@@ -170,23 +217,47 @@ void handle_menu(const uint8_t ch) {
           !kb_config.global_actuation_settings.rapid_trigger;
       state = ACTUATION;
     } else if ('0' <= ch && ch <= '9') {
-        actuation_setpoint_dmm = ch - '0';
-    }
-    break;
-  case LIGHTING:
-    if (ch == 'b' || ch == 'B') {
-      state = MAIN;
-    }
-    break;
-  case RESTORE_DEFAULT:
+      if (new_actuation_setpoint[0] == '\0') {
+        if ('1' <= ch && ch <= '9') {
+          new_actuation_setpoint[0] = ch;
+        }
+      } else {
+        // entering second digit
+        new_actuation_setpoint[1] = ch;
+      }
+    } else if (ch == BS) {
+      if (new_actuation_setpoint[1] != '\0') {
+        new_actuation_setpoint[1] = '\0';
+      } else {
+        new_actuation_setpoint[0] = '\0';
+      }
+    } else if (ch == DEL) {
+      new_actuation_setpoint[0] = '\0';
+      new_actuation_setpoint[1] = '\0';
+    } else if (ch == '\r') {
+      if (setpoint_valid(new_actuation_setpoint)) {
+        kb_config.global_actuation_settings.actuation_point_dmm =
+            to_int(new_actuation_setpoint);
+      } else {
+        new_actuation_setpoint[0] = '\0';
+        new_actuation_setpoint[1] = '\0';
+      }
 
-    break;
+      break;
+    case LIGHTING:
+      if (ch == 'b' || ch == 'B') {
+        state = MAIN;
+      }
+      break;
+    case RESTORE_DEFAULT:
+
+      break;
+    }
   }
-
-  display_menu(state, actuation_setpoint_dmm);
+  display_menu(state, actuation_setpoint_dmm, new_actuation_setpoint);
 }
 
 void virtser_recv(const uint8_t ch) {
-  dprintf("virtser_recv: ch: %3u '\\n' \n", ch);
+  dprintf("virtser_recv: ch: %3u \n", ch);
   handle_menu(ch);
 }
