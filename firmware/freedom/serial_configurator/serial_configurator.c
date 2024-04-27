@@ -156,6 +156,14 @@ void display_menu(enum Menu state, int actuation_setpoint_dmm,
 }
 
 bool setpoint_valid(char *new_actuation_setpoint) {
+  // single digit setpoint
+  if (new_actuation_setpoint[1] == '\0') {
+    if ('1' <= new_actuation_setpoint[0] && new_actuation_setpoint[0] <= '9') {
+      return true;
+    }
+  }
+
+  // double digit setpoint
   if ('1' <= new_actuation_setpoint[0] && new_actuation_setpoint[0] <= '3') {
     if ('0' <= new_actuation_setpoint[1] && new_actuation_setpoint[1] <= '9') {
       return true;
@@ -259,5 +267,7 @@ void handle_menu(const uint8_t ch) {
 
 void virtser_recv(const uint8_t ch) {
   dprintf("virtser_recv: ch: %3u \n", ch);
+  // TODO: handle arrow key
+
   handle_menu(ch);
 }
