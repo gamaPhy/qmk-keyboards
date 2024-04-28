@@ -110,11 +110,16 @@ void print_actuation_menu(void) {
   print_strings_serial(menu_strings);
 }
 
-void print_set_actuation(char *new_actuation_distance) {
+void print_set_actuation(int new_actuation_distance) {
   char nice[69] = {'\0'};
-  if (new_actuation_distance[0] == '6' && new_actuation_distance[1] == '9') {
+  if (new_actuation_distance == 69) {
     strcpy(nice, "              Nice.");
   }
+  char new_actuation_distance_str[2] = {'\0'};
+  if (new_actuation_distance != 0) {
+    sprintf(new_actuation_distance_str, "%d", new_actuation_distance);
+  }
+
   char *menu_strings[] = {NL,
                           " ----------------------------------------",
                           NL,
@@ -127,14 +132,14 @@ void print_set_actuation(char *new_actuation_distance) {
                           NL,
                           NL,
                           " New Actuation Distance (1 - 40): ",
-                          new_actuation_distance,
+                          new_actuation_distance_str,
                           NULL};
   print_strings_serial(menu_strings);
   cursor_left();
 }
 
 void display_menu(enum Menu state, int actuation_distance_dmm,
-                  char *new_actuation_distance) {
+                  int new_actuation_distance) {
   reset_terminal();
 
   switch (state) {
@@ -155,40 +160,16 @@ void display_menu(enum Menu state, int actuation_distance_dmm,
   }
 }
 
-bool setpoint_valid(char *new_actuation_distance) {
-  // single digit setpoint
-  if (new_actuation_distance[1] == '\0') {
-    if ('1' <= new_actuation_distance[0] && new_actuation_distance[0] <= '9') {
-      return true;
-    }
-  }
-
-  // double digit setpoint
-  if ('1' <= new_actuation_distance[0] && new_actuation_distance[0] <= '3') {
-    if ('0' <= new_actuation_distance[1] && new_actuation_distance[1] <= '9') {
-      return true;
-    }
-  }
-  if (new_actuation_distance[0] == '4' && new_actuation_distance[1] == '0') {
+bool setpoint_valid(int new_actuation_distance) {
+  if (1 <= new_actuation_distance && new_actuation_distance <= 40) {
     return true;
   }
   return false;
 }
 
-// assumes that `new_actuation_distance` holds a valid value
-int to_int(char *new_actuation_distance) {
-  // single digit value
-  if (new_actuation_distance[1] == '\0') {
-    return new_actuation_distance[0] - '0';
-  }
-  int first_digit = new_actuation_distance[0] - '0';
-  int second_digit = new_actuation_distance[1] - '0';
-  return first_digit * 10 + second_digit;
-}
-
-void handle_menu(const uint8_t ch) {
+void handle_menu(const uint16_t ch) {
   static enum Menu state = MAIN;
-  static char new_actuation_distance[2] = {'\0'};
+  static int new_actuation_distance = 0;
   int actuation_distance_dmm =
       kb_config.global_actuation_settings.actuation_point_dmm;
 
@@ -215,8 +196,7 @@ void handle_menu(const uint8_t ch) {
       state = MAIN;
     } else if (ch == 'c' || ch == 'C') {
       state = ACTUATION;
-      new_actuation_distance[0] = '\0';
-      new_actuation_distance[1] = '\0';
+      new_actuation_distance = 0;
     } else if (ch == 'p' || ch == 'P') {
       kb_config.use_per_key_settings = !kb_config.use_per_key_settings;
       state = ACTUATION;
@@ -225,30 +205,34 @@ void handle_menu(const uint8_t ch) {
           !kb_config.global_actuation_settings.rapid_trigger;
       state = ACTUATION;
     } else if ('0' <= ch && ch <= '9') {
-      if (new_actuation_distance[0] == '\0') {
+      // reset if input would exceed double digit number
+      if (new_actuation_distance * 10 + ch - '0' > 99) {
+        new_actuation_distance = 0;
+      }
+      if (new_actuation_distance == 0) {
         if ('1' <= ch && ch <= '9') {
-          new_actuation_distance[0] = ch;
+          new_actuation_distance = ch - '0';
         }
       } else {
         // entering second digit
-        new_actuation_distance[1] = ch;
+        new_actuation_distance = new_actuation_distance * 10 + ch - '0';
       }
+    } else if (ch == ARROW_UP) {
+
     } else if (ch == BS) {
-      if (new_actuation_distance[1] != '\0') {
-        new_actuation_distance[1] = '\0';
+      if (new_actuation_distance >= 10) {
+        new_actuation_distance = new_actuation_distance / 10;
       } else {
-        new_actuation_distance[0] = '\0';
+        new_actuation_distance = 0;
       }
     } else if (ch == DEL) {
-      new_actuation_distance[0] = '\0';
-      new_actuation_distance[1] = '\0';
+      new_actuation_distance = 0;
     } else if (ch == '\r') {
       if (setpoint_valid(new_actuation_distance)) {
         kb_config.global_actuation_settings.actuation_point_dmm =
-            to_int(new_actuation_distance);
+            new_actuation_distance;
       }
-      new_actuation_distance[0] = '\0';
-      new_actuation_distance[1] = '\0';
+      new_actuation_distance = 0;
 
       break;
     case LIGHTING:
@@ -265,8 +249,31 @@ void handle_menu(const uint8_t ch) {
 }
 
 void virtser_recv(const uint8_t ch) {
+  static bool escaping = false;
   dprintf("virtser_recv: ch: %3u \n", ch);
-  // TODO: handle arrow key
-
-  handle_menu(ch);
+  // Note that
+  if (ch == ESC) {
+    escaping = true;
+  } else if (escaping == true && ch == '[') {
+    // consume intermediate escape character
+  } else if (escaping) {
+    switch (ch) {
+    case 'A':
+      handle_menu(ARROW_UP);
+      break;
+    case 'B':
+      handle_menu(ARROW_DOWN);
+      break;
+    case 'C':
+      handle_menu(ARROW_RIGHT);
+      break;
+    case 'D':
+      handle_menu(ARROW_LEFT);
+      break;
+    }
+    escaping = false;
+  } else {
+    handle_menu(ch);
+    escaping = false;
+  }
 }
