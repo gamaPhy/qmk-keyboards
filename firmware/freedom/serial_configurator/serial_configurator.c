@@ -78,15 +78,17 @@ void create_setting_bar(char *setting_bar, int setpoint) {
   // setting bar size less the two digit number in front
   char setting_fill[SETTING_BAR_SIZE - 2];
   setting_fill[0] = ' ';
-  setting_fill[1] = '[';
+  setting_fill[1] = '<';
   int i;
-  for (i = 2; i <= KEY_MAX_dmm; i++) {
-    if (i <= setpoint) {
-      setting_fill[i] = 'X';
+  int fill_to = 0;
+  for (i = 2; i <= KEY_MAX_dmm + 1; i++) {
+    fill_to++;
+    if (fill_to <= setpoint) {
+      setting_fill[i] = '@';
     } else
       setting_fill[i] = '_';
   }
-  setting_fill[i] = ']';
+  setting_fill[i] = '>';
   setting_fill[i + 1] = '\0';
   strcpy(setting_bar, setting_num_str);
   strcat(setting_bar, setting_fill);
@@ -135,10 +137,10 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                           NL,
                           " [B] Back",
                           NL,
-                          NL,
                           NULL};
 
   print_strings_serial(menu_strings);
+  cursor_down();
 }
 
 void print_set_new_setpoint(char *setting_bar_prefix, char *setting_bar,
@@ -177,7 +179,6 @@ void print_set_new_setpoint(char *setting_bar_prefix, char *setting_bar,
                           NL,
                           prompt,
                           new_setpoint_str,
-                          NL,
                           NULL};
   print_strings_serial(menu_strings);
   cursor_left();
