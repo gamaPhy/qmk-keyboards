@@ -101,63 +101,74 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
 
   if (kb_config.use_per_key_settings) {
     per_key_settings = "ON";
+    char *menu_strings[] = {NL,
+                            " MAIN MENU -> ACTUATION SETTINGS",
+                            NL,
+                            NL,
+                            " [P] Per-Key Settings ",
+                            per_key_settings,
+                            NL,
+                            NL,
+                            " [B] Back",
+                            NL,
+                            NULL};
+    print_strings_serial(menu_strings);
   } else {
     per_key_settings = "OFF";
-  }
-
-  // Whitespace offset to align with per-key settings
-  if (kb_config.global_actuation_settings.rapid_trigger) {
-    rapid_trigger_setting = "   ON";
-    char *menu_strings[] = {NL,
-                            " MAIN MENU -> ACTUATION SETTINGS",
-                            NL,
-                            NL,
-                            " [P] Per-Key Settings ",
-                            per_key_settings,
-                            NL,
-                            NL,
-                            " [R] Rapid Trigger ",
-                            rapid_trigger_setting,
-                            NL,
-                            NL,
-                            " [A] Actuation Distance  ",
-                            actuation_setting_bar,
-                            NL,
-                            NL,
-                            " [E] Press Sensitivity   ",
-                            press_setting_bar,
-                            NL,
-                            NL,
-                            " [L] Release Sensitivity ",
-                            release_setting_bar,
-                            NL,
-                            NL,
-                            " [B] Back",
-                            NL,
-                            NULL};
-    print_strings_serial(menu_strings);
-  } else {
-    rapid_trigger_setting = "   OFF";
-    char *menu_strings[] = {NL,
-                            " MAIN MENU -> ACTUATION SETTINGS",
-                            NL,
-                            NL,
-                            " [P] Per-Key Settings ",
-                            per_key_settings,
-                            NL,
-                            NL,
-                            " [R] Rapid Trigger ",
-                            rapid_trigger_setting,
-                            NL,
-                            NL,
-                            " [A] Actuation Distance  ",
-                            actuation_setting_bar,
-                            NL,
-                            NL,
-                            " [B] Back",
-                            NL,
-                            NULL};
-    print_strings_serial(menu_strings);
+    // Whitespace offset to align with per-key settings
+    if (kb_config.global_actuation_settings.rapid_trigger) {
+      rapid_trigger_setting = "   ON";
+      char *menu_strings[] = {NL,
+                              " MAIN MENU -> ACTUATION SETTINGS",
+                              NL,
+                              NL,
+                              " [P] Per-Key Settings ",
+                              per_key_settings,
+                              NL,
+                              NL,
+                              " [R] Rapid Trigger ",
+                              rapid_trigger_setting,
+                              NL,
+                              NL,
+                              " [A] Actuation Distance  ",
+                              actuation_setting_bar,
+                              NL,
+                              NL,
+                              " [E] Press Sensitivity   ",
+                              press_setting_bar,
+                              NL,
+                              NL,
+                              " [L] Release Sensitivity ",
+                              release_setting_bar,
+                              NL,
+                              NL,
+                              " [B] Back",
+                              NL,
+                              NULL};
+      print_strings_serial(menu_strings);
+    } else {
+      rapid_trigger_setting = "   OFF";
+      char *menu_strings[] = {NL,
+                              " MAIN MENU -> ACTUATION SETTINGS",
+                              NL,
+                              NL,
+                              " [P] Per-Key Settings ",
+                              per_key_settings,
+                              NL,
+                              NL,
+                              " [R] Rapid Trigger ",
+                              rapid_trigger_setting,
+                              NL,
+                              NL,
+                              " [A] Actuation Distance  ",
+                              actuation_setting_bar,
+                              NL,
+                              NL,
+                              " [B] Back",
+                              NL,
+                              NULL};
+      print_strings_serial(menu_strings);
+    }
   }
 
   cursor_down();
