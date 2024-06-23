@@ -68,19 +68,28 @@ void print_main_menu(void) {
 }
 
 void create_setting_bar(char *setting_bar, int setpoint) {
-  setting_bar[0] = '[';
+  char setting_num_str[2];
+  sprintf(setting_num_str, "%2d", setpoint);
+
+  // setting bar size less the two digit number in front
+  char setting_fill[SETTING_BAR_SIZE - 2];
+  setting_fill[0] = ' ';
+  setting_fill[1] = '[';
   int i;
-  for (i = 1; i <= KEY_MAX_dmm; i++) {
+  for (i = 2; i <= KEY_MAX_dmm; i++) {
     if (i <= setpoint) {
-      setting_bar[i] = 'X';
+      setting_fill[i] = 'X';
     } else
-      setting_bar[i] = '-';
+      setting_fill[i] = '_';
   }
-  setting_bar[i] = ']';
-  setting_bar[i + 1] = '\0';
+  setting_fill[i] = ']';
+  setting_fill[i + 1] = '\0';
+  strcpy(setting_bar, setting_num_str);
+  strcat(setting_bar, setting_fill);
 }
 
-void print_actuation_menu(void) {
+void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
+                          char *release_setting_bar) {
   char *per_key_settings;
   char *rapid_trigger_setting;
 
@@ -96,33 +105,6 @@ void print_actuation_menu(void) {
     rapid_trigger_setting = "   [ ]";
   }
 
-  // Maximum actuation distance is a 2 digit integer
-  // pad with leading spaces if there is a 1 digit integer to align setting bars
-  char actuation_setting[2];
-  sprintf(actuation_setting, "%2d",
-          kb_config.global_actuation_settings.actuation_point_dmm);
-  char actuation_setting_bar[SETTING_BAR_SIZE];
-  create_setting_bar(actuation_setting_bar,
-                     kb_config.global_actuation_settings.actuation_point_dmm);
-
-  char press_sensitivity_setting[2];
-  sprintf(
-      press_sensitivity_setting, "%2d",
-      kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm);
-  char press_setting_bar[SETTING_BAR_SIZE];
-  create_setting_bar(
-      press_setting_bar,
-      kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm);
-
-  char release_sensitivity_setting[2];
-  sprintf(release_sensitivity_setting, "%2d",
-          kb_config.global_actuation_settings
-              .rapid_trigger_release_sensitivity_dmm);
-  char release_setting_bar[SETTING_BAR_SIZE];
-  create_setting_bar(release_setting_bar,
-                     kb_config.global_actuation_settings
-                         .rapid_trigger_release_sensitivity_dmm);
-
   char *menu_strings[] = {NL,
                           " MAIN MENU -> ACTUATION SETTINGS",
                           NL,
@@ -136,20 +118,14 @@ void print_actuation_menu(void) {
                           NL,
                           NL,
                           " [A] Actuation Distance  ",
-                          actuation_setting,
-                          " ",
                           actuation_setting_bar,
                           NL,
                           NL,
                           " [E] Press Sensitivity   ",
-                          press_sensitivity_setting,
-                          " ",
                           press_setting_bar,
                           NL,
                           NL,
                           " [L] Release Sensitivity ",
-                          release_sensitivity_setting,
-                          " ",
                           release_setting_bar,
                           NL,
                           NL,
@@ -160,7 +136,8 @@ void print_actuation_menu(void) {
   print_strings_serial(menu_strings);
 }
 
-void print_set_new_setpoint(char *prompt, int new_setpoint_dmm) {
+void print_set_new_setpoint(char *setting_bar_prefix, char *setting_bar,
+                            char *prompt, int new_setpoint_dmm) {
   char nice[69] = {'\0'};
   if (new_setpoint_dmm == 69) {
     strcpy(nice, "              Nice.");
@@ -188,6 +165,11 @@ void print_set_new_setpoint(char *prompt, int new_setpoint_dmm) {
                           nice,
                           NL,
                           NL,
+                          setting_bar_prefix,
+                          setting_bar,
+                          NL,
+                          NL,
+                          NL,
                           prompt,
                           new_setpoint_str,
                           NULL};
@@ -198,32 +180,49 @@ void print_set_new_setpoint(char *prompt, int new_setpoint_dmm) {
 void display_menu(enum Menu state, int new_setpoint_dmm) {
   reset_terminal();
 
-  switch (state) {
-  case MAIN:
+  if (state == MAIN) {
     print_main_menu();
-    break;
-  case ACTUATION:
-    print_actuation_menu();
-    break;
-  case INPUT_ACTUATION:
-    print_actuation_menu();
-    print_set_new_setpoint(" New Actuation Distance (1 - 40): ",
-                           new_setpoint_dmm);
-    break;
-  case INPUT_PRESS_SENSITIVITY:
-    print_actuation_menu();
-    print_set_new_setpoint(" New Press Sensitivity (1 - 40): ",
-                           new_setpoint_dmm);
-    break;
-  case INPUT_RELEASE_SENSITIVITY:
-    print_actuation_menu();
-    print_set_new_setpoint(" New Release Sensitivity (1 - 40): ",
-                           new_setpoint_dmm);
-    break;
-  case LIGHTING:
-    break;
-  case RESTORE_DEFAULT:
-    break;
+  } else if (state == ACTUATION || INPUT_ACTUATION || INPUT_PRESS_SENSITIVITY ||
+             INPUT_RELEASE_SENSITIVITY) {
+    // Maximum actuation distance is a 2 digit integer
+    // pad with leading spaces if there is a 1 digit integer to align setting
+    // bar
+    char actuation_setting_bar[SETTING_BAR_SIZE];
+    create_setting_bar(actuation_setting_bar,
+                       kb_config.global_actuation_settings.actuation_point_dmm);
+
+    char press_setting_bar[SETTING_BAR_SIZE];
+    create_setting_bar(press_setting_bar,
+                       kb_config.global_actuation_settings
+                           .rapid_trigger_press_sensitivity_dmm);
+
+    char release_setting_bar[SETTING_BAR_SIZE];
+    create_setting_bar(release_setting_bar,
+                       kb_config.global_actuation_settings
+                           .rapid_trigger_release_sensitivity_dmm);
+
+    print_actuation_menu(actuation_setting_bar, press_setting_bar,
+                         release_setting_bar);
+
+    if (state == INPUT_ACTUATION) {
+      print_set_new_setpoint(
+          " Current Actuation Distance: ", actuation_setting_bar,
+          " Set Actuation Distance (1 - 40): ", new_setpoint_dmm);
+    } else if (state == INPUT_PRESS_SENSITIVITY) {
+      print_set_new_setpoint(
+          " Current Press Sensitivity: ", press_setting_bar,
+          " Set Press Sensitivity (1 - 40): ", new_setpoint_dmm);
+    } else if (state == INPUT_RELEASE_SENSITIVITY) {
+      print_set_new_setpoint(
+          " Current Release Sensitivity: ", release_setting_bar,
+          " Set Release Sensitivity (1 - 40): ", new_setpoint_dmm);
+    }
+  } else if (state == LIGHTING) {
+    // Do nothing (no operation for LIGHTING)
+  } else if (state == RESTORE_DEFAULT) {
+    // Do nothing (no operation for RESTORE_DEFAULT)
+  } else {
+    // Handle any other cases if necessary
   }
 }
 
@@ -333,8 +332,9 @@ void handle_menu(const uint16_t ch) {
           kb_config.global_actuation_settings
               .rapid_trigger_press_sensitivity_dmm = new_setpoint_dmm;
         }
+      } else {
+        new_setpoint_dmm = 0;
       }
-      new_setpoint_dmm = 0;
 
       break;
     case LIGHTING:
