@@ -1,6 +1,11 @@
 #pragma once
 
+#include "../config.h"
 #include "../freedom.h"
+
+// Bar that shows setpoints graphically
+// 40 total setpoints + 2 encapsulation chars
+#define SETTING_BAR_SIZE KEY_MAX_dmm + 2
 
 #define NL "\n\r"
 #define BS 8
