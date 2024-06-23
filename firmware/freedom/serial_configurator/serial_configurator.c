@@ -13,6 +13,7 @@ enum Menu {
   INPUT_ACTUATION,
   INPUT_PRESS_SENSITIVITY,
   INPUT_RELEASE_SENSITIVITY,
+  KEYMAP,
   LIGHTING,
   RESTORE_DEFAULT,
 };
@@ -60,6 +61,9 @@ void print_main_menu(void) {
                           NL,
                           NL,
                           " [L] LED Settings",
+                          NL,
+                          NL,
+                          " [K] Keymap",
                           NL,
                           NL,
                           NULL};
@@ -131,6 +135,7 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                           NL,
                           " [B] Back",
                           NL,
+                          NL,
                           NULL};
 
   print_strings_serial(menu_strings);
@@ -172,6 +177,7 @@ void print_set_new_setpoint(char *setting_bar_prefix, char *setting_bar,
                           NL,
                           prompt,
                           new_setpoint_str,
+                          NL,
                           NULL};
   print_strings_serial(menu_strings);
   cursor_left();
@@ -219,6 +225,7 @@ void display_menu(enum Menu state, int new_setpoint_dmm) {
     }
   } else if (state == LIGHTING) {
     // Do nothing (no operation for LIGHTING)
+  } else if (state == KEYMAP) {
   } else if (state == RESTORE_DEFAULT) {
     // Do nothing (no operation for RESTORE_DEFAULT)
   } else {
@@ -309,8 +316,6 @@ void handle_menu(const uint16_t ch) {
         // entering second digit
         new_setpoint_dmm = new_setpoint_dmm * 10 + ch - '0';
       }
-    } else if (ch == ARROW_UP) {
-
     } else if (ch == BS) {
       if (new_setpoint_dmm >= 10) {
         new_setpoint_dmm = new_setpoint_dmm / 10;
@@ -338,6 +343,11 @@ void handle_menu(const uint16_t ch) {
 
       break;
     case LIGHTING:
+      if (ch == 'b' || ch == 'B') {
+        state = MAIN;
+      }
+      break;
+    case KEYMAP:
       if (ch == 'b' || ch == 'B') {
         state = MAIN;
       }
