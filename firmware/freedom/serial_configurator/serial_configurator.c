@@ -100,15 +100,15 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
   char *rapid_trigger_setting;
 
   if (kb_config.use_per_key_settings) {
-    per_key_settings = "[X]";
+    per_key_settings = "ON";
   } else {
-    per_key_settings = "[ ]";
+    per_key_settings = "OFF";
   }
 
   if (kb_config.global_actuation_settings.rapid_trigger) {
-    rapid_trigger_setting = "   [X]";
+    rapid_trigger_setting = "   ON";
   } else {
-    rapid_trigger_setting = "   [ ]";
+    rapid_trigger_setting = "   OFF";
   }
 
   char *menu_strings[] = {NL,
