@@ -10,6 +10,7 @@ DEFAULT_FOLDER = gamaphy/freedom/3k
 
 RGB_MATRIX_ENABLE = yes
 RGB_MATRIX_DRIVER = ws2812
+### this is for STM MCUs, rp2040 uses PIO, which is already defined in config.h
 # WS2812_DRIVER = pwm
 
 SRC += matrix.c
