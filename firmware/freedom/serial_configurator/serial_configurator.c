@@ -57,10 +57,10 @@ void print_main_menu(void) {
                           " MAIN MENU",
                           NL,
                           NL,
-                          " [A] Actuation Settings",
+                          " [A] Actuation",
                           NL,
                           NL,
-                          " [L] LED Settings",
+                          " [L] Lighting",
                           NL,
                           NL,
                           " [K] Keymap",
@@ -109,7 +109,7 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                             per_key_settings,
                             NL,
                             NL,
-                            " [B] Back",
+                            " [B] Back <-",
                             NL,
                             NULL};
     print_strings_serial(menu_strings);
@@ -142,7 +142,7 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                               release_setting_bar,
                               NL,
                               NL,
-                              " [B] Back",
+                              " [B] Back <-",
                               NL,
                               NULL};
       print_strings_serial(menu_strings);
@@ -164,7 +164,7 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                               actuation_setting_bar,
                               NL,
                               NL,
-                              " [B] Back",
+                              " [B] Back <-",
                               NL,
                               NULL};
       print_strings_serial(menu_strings);
@@ -199,7 +199,7 @@ void print_set_new_setpoint(char *setting_bar_prefix, char *setting_bar,
                           " [Enter] Confirm",
                           NL,
                           NL,
-                          " [X] Exit",
+                          " [X] Close",
                           nice,
                           NL,
                           NL,
@@ -215,13 +215,38 @@ void print_set_new_setpoint(char *setting_bar_prefix, char *setting_bar,
   cursor_left();
 }
 
+void print_lighting_menu(void) {
+  char *menu_strings[] = {NL,
+                          " MAIN MENU -> LIGHTING SETTINGS",
+                          NL,
+                          NL,
+                          " [R] Brightness",
+                          NL,
+                          NL,
+                          " [E] Effect",
+                          NL,
+                          NL,
+                          " [S] Effect Speed",
+                          NL,
+                          NL,
+                          " [C] Color",
+                          NL,
+                          NL,
+                          " [B] Back <-",
+                          NL,
+                          NULL};
+  print_strings_serial(menu_strings);
+  cursor_down();
+}
+
 void display_menu(enum Menu state, int new_setpoint_dmm) {
   reset_terminal();
 
   if (state == MAIN) {
     print_main_menu();
-  } else if (state == ACTUATION || INPUT_ACTUATION || INPUT_PRESS_SENSITIVITY ||
-             INPUT_RELEASE_SENSITIVITY) {
+  } else if (state == ACTUATION || state == INPUT_ACTUATION ||
+             state == INPUT_PRESS_SENSITIVITY ||
+             state == INPUT_RELEASE_SENSITIVITY) {
     // Maximum actuation distance is a 2 digit integer
     // pad with leading spaces if there is a 1 digit integer to align setting
     // bar
@@ -256,7 +281,7 @@ void display_menu(enum Menu state, int new_setpoint_dmm) {
           " Set Release Sensitivity (1 - 40): ", new_setpoint_dmm);
     }
   } else if (state == LIGHTING) {
-    // Do nothing (no operation for LIGHTING)
+    print_lighting_menu();
   } else if (state == KEYMAP) {
   } else if (state == RESTORE_DEFAULT) {
     // Do nothing (no operation for RESTORE_DEFAULT)
@@ -280,6 +305,8 @@ void handle_menu(const uint16_t ch) {
   case MAIN:
     if (ch == 'a' || ch == 'A') {
       state = ACTUATION;
+    } else if (ch == 'l' || ch == 'L') {
+      state = LIGHTING;
     }
     break;
   case ACTUATION:
