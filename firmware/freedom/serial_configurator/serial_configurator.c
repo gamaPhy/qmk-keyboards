@@ -100,7 +100,7 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
   char *rapid_trigger_setting;
 
   if (kb_config.use_per_key_settings) {
-    per_key_settings = "ON";
+    per_key_settings = " <ON>";
     char *menu_strings[] = {NL,
                             " MAIN MENU -> ACTUATION SETTINGS",
                             NL,
@@ -114,10 +114,10 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                             NULL};
     print_strings_serial(menu_strings);
   } else {
-    per_key_settings = "OFF";
+    per_key_settings = " <OFF>";
     // Whitespace offset to align with per-key settings
     if (kb_config.global_actuation_settings.rapid_trigger) {
-      rapid_trigger_setting = "   ON";
+      rapid_trigger_setting = "    <ON>";
       char *menu_strings[] = {NL,
                               " MAIN MENU -> ACTUATION SETTINGS",
                               NL,
@@ -147,7 +147,7 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                               NULL};
       print_strings_serial(menu_strings);
     } else {
-      rapid_trigger_setting = "   OFF";
+      rapid_trigger_setting = "    <OFF>";
       char *menu_strings[] = {NL,
                               " MAIN MENU -> ACTUATION SETTINGS",
                               NL,
@@ -220,13 +220,13 @@ void print_lighting_menu(void) {
                           " MAIN MENU -> LIGHTING SETTINGS",
                           NL,
                           NL,
-                          " [R] Brightness",
-                          NL,
-                          NL,
                           " [E] Effect",
                           NL,
                           NL,
-                          " [S] Effect Speed",
+                          " [S] Speed",
+                          NL,
+                          NL,
+                          " [R] Brightness",
                           NL,
                           NL,
                           " [C] Color",
