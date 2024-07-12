@@ -174,9 +174,9 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
   cursor_down();
 }
 
-void print_set_new_setpoint(char *setting_bar_prefix,
-                            char *setting_bar_whitespace, char *setting_bar,
-                            char *prompt, int new_setpoint_dmm) {
+void print_set_new_setpoint(char *setting_name_uppercase, char *setting_name,
+                            char *setting_bar, char *prompt,
+                            int new_setpoint_dmm) {
   char nice[69] = {'\0'};
   if (new_setpoint_dmm == 69) {
     strcpy(nice, "              Nice.");
@@ -194,25 +194,33 @@ void print_set_new_setpoint(char *setting_bar_prefix,
                           "-------------------------",
                           NL,
                           NL,
+                          setting_name_uppercase,
+                          NL,
+                          NL,
                           " [I] Increase",
                           NL,
                           NL,
                           " [D] Decrease",
                           NL,
                           NL,
-                          " [Y] Confirm",
+                          " [S] Save New Setting",
                           NL,
                           NL,
                           " [X] Close",
                           nice,
                           NL,
                           NL,
-                          setting_bar_prefix,
+                          NL,
+                          setting_name,
+                          NL,
+                          NL,
+                          " Current ",
                           setting_bar,
                           NL,
                           NL,
-                          setting_bar_whitespace,
+                          "     New ",
                           new_setting_bar,
+                          NL,
                           NL,
                           NL,
                           prompt,
@@ -275,17 +283,17 @@ void display_menu(enum Menu state, int new_setpoint_dmm) {
                          release_setting_bar);
 
     if (state == INPUT_ACTUATION) {
-      print_set_new_setpoint(
-          " Current Actuation Distance ", "                            ",
-          actuation_setting_bar, " Set Actuation Distance: ", new_setpoint_dmm);
+      print_set_new_setpoint(" ACTUATION DISTANCE SETTING",
+                             " Actuation Distance", actuation_setting_bar,
+                             " Input (1-40): ", new_setpoint_dmm);
     } else if (state == INPUT_PRESS_SENSITIVITY) {
-      print_set_new_setpoint(" Current Press Sensitivity ",
-                             "                           ", press_setting_bar,
-                             " Set Press Sensitivity: ", new_setpoint_dmm);
+      print_set_new_setpoint(" PRESS SENSITIVITY SETTING", " Press Sensitivity",
+                             press_setting_bar,
+                             " Input (1-40): ", new_setpoint_dmm);
     } else if (state == INPUT_RELEASE_SENSITIVITY) {
-      print_set_new_setpoint(
-          " Current Release Sensitivity ", "                             ",
-          release_setting_bar, " Set Release Sensitivity: ", new_setpoint_dmm);
+      print_set_new_setpoint(" RELEASE SENSITIVITY SETTING",
+                             " Release Sensitivity", release_setting_bar,
+                             " Input (1-40): ", new_setpoint_dmm);
     }
   } else if (state == LIGHTING) {
     print_lighting_menu();
@@ -371,10 +379,16 @@ void handle_menu(const uint16_t ch) {
       state = ACTUATION;
     } else if (ch == 'a' || ch == 'A') {
       state = INPUT_ACTUATION;
+      new_setpoint_dmm =
+          kb_config.global_actuation_settings.actuation_point_dmm;
     } else if (ch == 'e' || ch == 'E') {
       state = INPUT_PRESS_SENSITIVITY;
+      new_setpoint_dmm = kb_config.global_actuation_settings
+                             .rapid_trigger_press_sensitivity_dmm;
     } else if (ch == 'l' || ch == 'L') {
       state = INPUT_RELEASE_SENSITIVITY;
+      new_setpoint_dmm = kb_config.global_actuation_settings
+                             .rapid_trigger_release_sensitivity_dmm;
     } else if (ch == 'i' || ch == 'I') {
       if (setpoint_valid(new_setpoint_dmm + 1)) {
         new_setpoint_dmm++;
@@ -404,7 +418,7 @@ void handle_menu(const uint16_t ch) {
       }
     } else if (ch == DEL) {
       new_setpoint_dmm = 0;
-    } else if (ch == 'y' || ch == 'Y') {
+    } else if (ch == 's' || ch == 'S') {
       if (setpoint_valid(new_setpoint_dmm)) {
         if (state == INPUT_ACTUATION) {
           kb_config.global_actuation_settings.actuation_point_dmm =
