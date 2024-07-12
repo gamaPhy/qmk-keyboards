@@ -174,7 +174,8 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
   cursor_down();
 }
 
-void print_set_new_setpoint(char *setting_bar_prefix, char *setting_bar,
+void print_set_new_setpoint(char *setting_bar_prefix,
+                            char *setting_bar_whitespace, char *setting_bar,
                             char *prompt, int new_setpoint_dmm) {
   char nice[69] = {'\0'};
   if (new_setpoint_dmm == 69) {
@@ -184,6 +185,9 @@ void print_set_new_setpoint(char *setting_bar_prefix, char *setting_bar,
   if (new_setpoint_dmm != 0) {
     sprintf(new_setpoint_str, "%d", new_setpoint_dmm);
   }
+
+  char new_setting_bar[SETTING_BAR_SIZE];
+  create_setting_bar(new_setting_bar, new_setpoint_dmm);
 
   char *menu_strings[] = {NL,
                           " ---------------------------------------------------"
@@ -196,7 +200,7 @@ void print_set_new_setpoint(char *setting_bar_prefix, char *setting_bar,
                           " [D] Decrease",
                           NL,
                           NL,
-                          " [Enter] Confirm",
+                          " [Y] Confirm",
                           NL,
                           NL,
                           " [X] Close",
@@ -206,6 +210,9 @@ void print_set_new_setpoint(char *setting_bar_prefix, char *setting_bar,
                           setting_bar_prefix,
                           setting_bar,
                           NL,
+                          NL,
+                          setting_bar_whitespace,
+                          new_setting_bar,
                           NL,
                           NL,
                           prompt,
@@ -269,16 +276,16 @@ void display_menu(enum Menu state, int new_setpoint_dmm) {
 
     if (state == INPUT_ACTUATION) {
       print_set_new_setpoint(
-          " Current Actuation Distance: ", actuation_setting_bar,
-          " Set Actuation Distance (1 - 40): ", new_setpoint_dmm);
+          " Current Actuation Distance ", "                            ",
+          actuation_setting_bar, " Set Actuation Distance: ", new_setpoint_dmm);
     } else if (state == INPUT_PRESS_SENSITIVITY) {
-      print_set_new_setpoint(
-          " Current Press Sensitivity: ", press_setting_bar,
-          " Set Press Sensitivity (1 - 40): ", new_setpoint_dmm);
+      print_set_new_setpoint(" Current Press Sensitivity ",
+                             "                           ", press_setting_bar,
+                             " Set Press Sensitivity: ", new_setpoint_dmm);
     } else if (state == INPUT_RELEASE_SENSITIVITY) {
       print_set_new_setpoint(
-          " Current Release Sensitivity: ", release_setting_bar,
-          " Set Release Sensitivity (1 - 40): ", new_setpoint_dmm);
+          " Current Release Sensitivity ", "                             ",
+          release_setting_bar, " Set Release Sensitivity: ", new_setpoint_dmm);
     }
   } else if (state == LIGHTING) {
     print_lighting_menu();
@@ -397,8 +404,7 @@ void handle_menu(const uint16_t ch) {
       }
     } else if (ch == DEL) {
       new_setpoint_dmm = 0;
-    } else if (ch == '\r') {
-      // 'Enter' pressed
+    } else if (ch == 'y' || ch == 'Y') {
       if (setpoint_valid(new_setpoint_dmm)) {
         if (state == INPUT_ACTUATION) {
           kb_config.global_actuation_settings.actuation_point_dmm =
