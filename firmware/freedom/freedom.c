@@ -248,7 +248,7 @@ void matrix_scan_kb(void) {
         rgb_matrix_reload_from_eeprom();
       }
     } else {
-      dprintf("Current raw reading range within 1 second:\n");
+      dprintf("Current raw reading range within last second:\n");
       for (int s = 0; s < SENSOR_COUNT; s++) {
         dprintf("(%i,%i) ", running_sensor_bounds[s].min,
                 running_sensor_bounds[s].max);
