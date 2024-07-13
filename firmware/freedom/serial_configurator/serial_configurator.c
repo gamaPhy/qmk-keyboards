@@ -15,6 +15,10 @@ enum Menu {
   INPUT_RELEASE_SENSITIVITY,
   KEYMAP,
   LIGHTING,
+  INPUT_EFFECT,
+  INPUT_SPEED,
+  INPUT_BRIGHTNESS,
+  INPUT_COLOR,
   RESTORE_DEFAULT,
 };
 
@@ -71,12 +75,21 @@ void print_main_menu(void) {
   print_strings_serial(menu_strings);
 }
 
-void create_setting_bar(char *setting_bar, int setpoint) {
+// Sets the contents of `setting_bar` to a bar that fills with values 1 - 40
+// Ex:
+// 20 <@@@@@@@@@@@@@@@@@@@____________________>
+// 40 <@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@>
+//  1 <@______________________________________>
+//
+// `setting_bar` must have a size of SETTING_BAR_SIZE + 2 to fit the potentially
+// 3 digit number
+void create_2_digit_setting_bar(char *setting_bar, int setpoint) {
+  // Maximum actuation distance is a 2 digit integer pad with leading spaces if
+  // there is a 1 digit integer to align setting bar
   char setting_num_str[2];
   sprintf(setting_num_str, "%2d", setpoint);
 
-  // setting bar size less the two digit number in front
-  char setting_fill[SETTING_BAR_SIZE - 2];
+  char setting_fill[SETTING_BAR_SIZE];
   setting_fill[0] = ' ';
   setting_fill[1] = '<';
   int i;
@@ -84,6 +97,39 @@ void create_setting_bar(char *setting_bar, int setpoint) {
   for (i = 2; i <= KEY_MAX_dmm + 1; i++) {
     fill_to++;
     if (fill_to <= setpoint) {
+      setting_fill[i] = '@';
+    } else
+      setting_fill[i] = '_';
+  }
+  setting_fill[i] = '>';
+  setting_fill[i + 1] = '\0';
+  strcpy(setting_bar, setting_num_str);
+  strcat(setting_bar, setting_fill);
+}
+
+// Sets the contents of `setting_bar` to a bar that fills with values 1 - 255
+// Ex:
+// 127 <@@@@@@@@@@@@@@@@@@@____________________>
+// 255 <@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@>
+//   1 <@______________________________________>
+//
+// `setting_bar` must have a size of SETTING_BAR_SIZE + 3 to fit the potentially
+// 3 digit number
+void create_3_digit_setting_bar(char *setting_bar, int setpoint) {
+  // Maximum value for some settings is a 3 digit number pad with leading spaces
+  // if there is a 1 or 2 digit integer to align setting bar
+  char setting_num_str[3];
+  sprintf(setting_num_str, "%3d", setpoint);
+
+  char setting_fill[SETTING_BAR_SIZE];
+  setting_fill[0] = ' ';
+  setting_fill[1] = '<';
+  int i;
+  int fill_to = 0;
+  int scaled_setpoint = (setpoint * 40) / 255;
+  for (i = 2; i <= KEY_MAX_dmm + 1; i++) {
+    fill_to++;
+    if (fill_to <= scaled_setpoint) {
       setting_fill[i] = '@';
     } else
       setting_fill[i] = '_';
@@ -107,6 +153,15 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                             NL,
                             " [P] Per-Key Settings ",
                             per_key_settings,
+                            NL,
+                            NL,
+                            " [L] Left Key",
+                            NL,
+                            NL,
+                            " [M] Middle Key",
+                            NL,
+                            NL,
+                            " [R] Right Key",
                             NL,
                             NL,
                             " [B] Back <-",
@@ -186,8 +241,8 @@ void print_set_new_setpoint(char *setting_name_uppercase, char *setting_name,
     sprintf(new_setpoint_str, "%d", new_setpoint_dmm);
   }
 
-  char new_setting_bar[SETTING_BAR_SIZE];
-  create_setting_bar(new_setting_bar, new_setpoint_dmm);
+  char new_setting_bar[SETTING_BAR_SIZE + 2];
+  create_2_digit_setting_bar(new_setting_bar, new_setpoint_dmm);
 
   char *menu_strings[] = {NL,
                           " ---------------------------------------------------"
@@ -230,7 +285,7 @@ void print_set_new_setpoint(char *setting_name_uppercase, char *setting_name,
   cursor_left();
 }
 
-void print_lighting_menu(void) {
+void print_lighting_menu(char *speed_setting_bar) {
   char *menu_strings[] = {NL,
                           " MAIN MENU -> LIGHTING SETTINGS",
                           NL,
@@ -239,6 +294,7 @@ void print_lighting_menu(void) {
                           NL,
                           NL,
                           " [S] Speed",
+                          speed_setting_bar,
                           NL,
                           NL,
                           " [R] Brightness",
@@ -262,22 +318,20 @@ void display_menu(enum Menu state, int new_setpoint_dmm) {
   } else if (state == ACTUATION || state == INPUT_ACTUATION ||
              state == INPUT_PRESS_SENSITIVITY ||
              state == INPUT_RELEASE_SENSITIVITY) {
-    // Maximum actuation distance is a 2 digit integer
-    // pad with leading spaces if there is a 1 digit integer to align setting
-    // bar
-    char actuation_setting_bar[SETTING_BAR_SIZE];
-    create_setting_bar(actuation_setting_bar,
-                       kb_config.global_actuation_settings.actuation_point_dmm);
+    char actuation_setting_bar[SETTING_BAR_SIZE + 2];
+    create_2_digit_setting_bar(
+        actuation_setting_bar,
+        kb_config.global_actuation_settings.actuation_point_dmm);
 
-    char press_setting_bar[SETTING_BAR_SIZE];
-    create_setting_bar(press_setting_bar,
-                       kb_config.global_actuation_settings
-                           .rapid_trigger_press_sensitivity_dmm);
+    char press_setting_bar[SETTING_BAR_SIZE + 2];
+    create_2_digit_setting_bar(press_setting_bar,
+                               kb_config.global_actuation_settings
+                                   .rapid_trigger_press_sensitivity_dmm);
 
-    char release_setting_bar[SETTING_BAR_SIZE];
-    create_setting_bar(release_setting_bar,
-                       kb_config.global_actuation_settings
-                           .rapid_trigger_release_sensitivity_dmm);
+    char release_setting_bar[SETTING_BAR_SIZE + 2];
+    create_2_digit_setting_bar(release_setting_bar,
+                               kb_config.global_actuation_settings
+                                   .rapid_trigger_release_sensitivity_dmm);
 
     print_actuation_menu(actuation_setting_bar, press_setting_bar,
                          release_setting_bar);
@@ -295,13 +349,17 @@ void display_menu(enum Menu state, int new_setpoint_dmm) {
                              " Release Sensitivity", release_setting_bar,
                              " Input (1-40): ", new_setpoint_dmm);
     }
-  } else if (state == LIGHTING) {
-    print_lighting_menu();
+  } else if (state == LIGHTING || state == INPUT_EFFECT ||
+             state == INPUT_SPEED || state == INPUT_COLOR) {
+    char speed_setting_bar[SETTING_BAR_SIZE + 2];
+    create_3_digit_setting_bar(speed_setting_bar, rgb_matrix_get_speed());
+
+    print_lighting_menu(speed_setting_bar);
   } else if (state == KEYMAP) {
   } else if (state == RESTORE_DEFAULT) {
     // Do nothing (no operation for RESTORE_DEFAULT)
   } else {
-    // Handle any other cases if necessary
+    // Do nothing
   }
 }
 
@@ -437,9 +495,29 @@ void handle_menu(const uint16_t ch) {
 
       break;
     case LIGHTING:
+      if (ch == 'e' || ch == 'E') {
+        state = INPUT_EFFECT;
+      }
+      if (ch == 's' || ch == 'S') {
+        state = INPUT_SPEED;
+      }
+      if (ch == 'r' || ch == 'R') {
+        state = INPUT_BRIGHTNESS;
+      }
+      if (ch == 'c' || ch == 'C') {
+        state = INPUT_COLOR;
+      }
       if (ch == 'b' || ch == 'B') {
         state = MAIN;
       }
+      break;
+    case INPUT_EFFECT:
+      break;
+    case INPUT_SPEED:
+      break;
+    case INPUT_BRIGHTNESS:
+      break;
+    case INPUT_COLOR:
       break;
     case KEYMAP:
       if (ch == 'b' || ch == 'B') {

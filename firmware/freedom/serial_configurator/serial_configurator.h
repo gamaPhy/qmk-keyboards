@@ -4,10 +4,10 @@
 #include "../freedom.h"
 
 // Bar that shows setpoints graphically
-// 2 digit number + space + 40 total setpoints + 2 encapsulation chars
+// space + 40 total setpoints + 2 encapsulation chars
 // Example:
-// 15 [XXXXXXXXXXXXXXX-------------------------]
-#define SETTING_BAR_SIZE 2 + 1 + KEY_MAX_dmm + 2
+// [XXXXXXXXXXXXXXX-------------------------]
+#define SETTING_BAR_SIZE 1 + KEY_MAX_dmm + 2
 
 #define NL "\n\r"
 #define BS 8
