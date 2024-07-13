@@ -196,15 +196,15 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                               rapid_trigger_setting,
                               NL,
                               NL,
-                              " [A] Actuation Distance  ",
+                              " [A] Actuation Distance   ",
                               actuation_setting_bar,
                               NL,
                               NL,
-                              " [E] Press Sensitivity   ",
+                              " [E] Press Sensitivity    ",
                               press_setting_bar,
                               NL,
                               NL,
-                              " [L] Release Sensitivity ",
+                              " [L] Release Sensitivity  ",
                               release_setting_bar,
                               NL,
                               NL,
@@ -272,13 +272,13 @@ void print_set_new_setpoint(char *setting_name_uppercase, char *setting_bar,
       NL,
       NL,
       NL,
-      " [u] +1",
+      " [i] +1",
       NL,
       NL,
       " [d] -1",
       NL,
       NL,
-      " [U] +5",
+      " [I] +5",
       NL,
       NL,
       " [D] -5",
@@ -296,7 +296,8 @@ void print_set_new_setpoint(char *setting_name_uppercase, char *setting_bar,
   cursor_left();
 }
 
-void print_lighting_menu(char *speed_setting_bar) {
+void print_lighting_menu(char *brightness_setting_bar,
+                         char *speed_setting_bar) {
   char *menu_strings[] = {NL,
                           " MAIN MENU -> LIGHTING SETTINGS",
                           NL,
@@ -304,14 +305,15 @@ void print_lighting_menu(char *speed_setting_bar) {
                           " [E] Effect",
                           NL,
                           NL,
-                          " [S] Speed",
-                          speed_setting_bar,
-                          NL,
-                          NL,
-                          " [R] Brightness",
-                          NL,
-                          NL,
                           " [C] Color",
+                          NL,
+                          NL,
+                          " [R] Brightness  ",
+                          brightness_setting_bar,
+                          NL,
+                          NL,
+                          " [S] Speed       ",
+                          speed_setting_bar,
                           NL,
                           NL,
                           " [B] Back <-",
@@ -357,12 +359,16 @@ void display_menu(enum Menu state, int new_setpoint_dmm) {
       print_set_new_setpoint(" RELEASE SENSITIVITY", release_setting_bar,
                              new_setpoint_dmm);
     }
-  } else if (state == LIGHTING || state == INPUT_EFFECT ||
-             state == INPUT_SPEED || state == INPUT_COLOR) {
-    char speed_setting_bar[SETTING_BAR_SIZE + 2];
+  } else if (state == LIGHTING || state == INPUT_BRIGHTNESS ||
+             state == INPUT_EFFECT || state == INPUT_SPEED ||
+             state == INPUT_COLOR) {
+    char speed_setting_bar[SETTING_BAR_SIZE + 3];
     create_3_digit_setting_bar(speed_setting_bar, rgb_matrix_get_speed());
 
-    print_lighting_menu(speed_setting_bar);
+    char brightness_setting_bar[SETTING_BAR_SIZE + 3];
+    create_3_digit_setting_bar(brightness_setting_bar, rgb_matrix_get_val());
+
+    print_lighting_menu(brightness_setting_bar, speed_setting_bar);
   } else if (state == KEYMAP) {
   } else if (state == RESTORE_DEFAULT) {
     // Do nothing (no operation for RESTORE_DEFAULT)
@@ -448,11 +454,11 @@ void handle_menu(const uint16_t ch) {
       state = INPUT_RELEASE_SENSITIVITY;
       new_setpoint_dmm = kb_config.global_actuation_settings
                              .rapid_trigger_release_sensitivity_dmm;
-    } else if (ch == 'u') {
+    } else if (ch == 'i') {
       new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm + 1);
     } else if (ch == 'd') {
       new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm - 1);
-    } else if (ch == 'U') {
+    } else if (ch == 'I') {
       new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm + 5);
     } else if (ch == 'D') {
       new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm - 5);
