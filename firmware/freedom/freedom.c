@@ -226,7 +226,7 @@ void matrix_scan_kb(void) {
     key_timer = timer_read();
 
     dprintf("\nTemperature: %i\n", adc_read(TO_MUX(4, 0)));
-    dprintf("\nCalibrated range:\n(%i, %i) (%i, %i) (%i, %i)\n\n",
+    dprintf("\nRaw calibrated range:\n(%i, %i) (%i, %i) (%i, %i)\n\n",
             kb_config.matrix_sensor_bounds[0][0].min,
             kb_config.matrix_sensor_bounds[0][0].max,
             kb_config.matrix_sensor_bounds[0][1].min,
@@ -248,7 +248,7 @@ void matrix_scan_kb(void) {
         rgb_matrix_reload_from_eeprom();
       }
     } else {
-      dprintf("Current reading range within 1 second:\n");
+      dprintf("Current raw reading range within 1 second:\n");
       for (int s = 0; s < SENSOR_COUNT; s++) {
         dprintf("(%i,%i) ", running_sensor_bounds[s].min,
                 running_sensor_bounds[s].max);
@@ -262,7 +262,6 @@ void matrix_scan_kb(void) {
                 sensor_lookup_table[s][running_sensor_bounds[s].max]);
       }
       dprintf("\n\n");
-
 
       for (int s = 0; s < SENSOR_COUNT; s++) {
         running_sensor_bounds[s].min = -1;
