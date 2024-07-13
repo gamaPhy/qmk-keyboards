@@ -75,6 +75,16 @@ void print_main_menu(void) {
   print_strings_serial(menu_strings);
 }
 
+int clamp_setpoint_dmm(int setpoint_dmm) {
+  if (setpoint_dmm < 1) {
+    return 1;
+  } else if (setpoint_dmm > KEY_MAX_dmm) {
+    return KEY_MAX_dmm;
+  } else {
+    return setpoint_dmm;
+  }
+}
+
 // Sets the contents of `setting_bar` to a bar that fills with values 1 - 40
 // Ex:
 // 20 <@@@@@@@@@@@@@@@@@@@____________________>
@@ -94,9 +104,10 @@ void create_2_digit_setting_bar(char *setting_bar, int setpoint) {
   setting_fill[1] = '<';
   int i;
   int fill_to = 0;
-  for (i = 2; i <= KEY_MAX_dmm + 1; i++) {
+  int scaled_setpoint = setpoint / 2;
+  for (i = 2; i <= (KEY_MAX_dmm / 2) + 1; i++) {
     fill_to++;
-    if (fill_to <= setpoint) {
+    if (fill_to <= scaled_setpoint) {
       setting_fill[i] = '@';
     } else
       setting_fill[i] = '_';
@@ -126,8 +137,8 @@ void create_3_digit_setting_bar(char *setting_bar, int setpoint) {
   setting_fill[1] = '<';
   int i;
   int fill_to = 0;
-  int scaled_setpoint = (setpoint * 40) / 255;
-  for (i = 2; i <= KEY_MAX_dmm + 1; i++) {
+  int scaled_setpoint = (setpoint * 20) / 255;
+  for (i = 2; i <= (KEY_MAX_dmm / 2) + 1; i++) {
     fill_to++;
     if (fill_to <= scaled_setpoint) {
       setting_fill[i] = '@';
@@ -229,8 +240,7 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
   cursor_down();
 }
 
-void print_set_new_setpoint(char *setting_name_uppercase, char *setting_name,
-                            char *setting_bar, char *prompt,
+void print_set_new_setpoint(char *setting_name_uppercase, char *setting_bar,
                             int new_setpoint_dmm) {
   char nice[69] = {'\0'};
   if (new_setpoint_dmm == 69) {
@@ -244,43 +254,44 @@ void print_set_new_setpoint(char *setting_name_uppercase, char *setting_name,
   char new_setting_bar[SETTING_BAR_SIZE + 2];
   create_2_digit_setting_bar(new_setting_bar, new_setpoint_dmm);
 
-  char *menu_strings[] = {NL,
-                          " ---------------------------------------------------"
-                          "-------------------------",
-                          NL,
-                          NL,
-                          setting_name_uppercase,
-                          NL,
-                          NL,
-                          " [I] Increase",
-                          NL,
-                          NL,
-                          " [D] Decrease",
-                          NL,
-                          NL,
-                          " [S] Save New Setting",
-                          NL,
-                          NL,
-                          " [X] Close",
-                          nice,
-                          NL,
-                          NL,
-                          NL,
-                          setting_name,
-                          NL,
-                          NL,
-                          " Current ",
-                          setting_bar,
-                          NL,
-                          NL,
-                          "     New ",
-                          new_setting_bar,
-                          NL,
-                          NL,
-                          NL,
-                          prompt,
-                          new_setpoint_str,
-                          NULL};
+  char *menu_strings[] = {
+      NL,
+      " ---------------------------------------------------",
+      NL,
+      NL,
+      setting_name_uppercase,
+      NL,
+      NL,
+      NL,
+      " Current ",
+      setting_bar,
+      NL,
+      NL,
+      "     New ",
+      new_setting_bar,
+      NL,
+      NL,
+      NL,
+      " [u] +1",
+      NL,
+      NL,
+      " [d] -1",
+      NL,
+      NL,
+      " [U] +5",
+      NL,
+      NL,
+      " [D] -5",
+      NL,
+      NL,
+      " [S] Save New Setting",
+      NL,
+      NL,
+      " [X] Close",
+      nice,
+      NL,
+      NL,
+      NULL};
   print_strings_serial(menu_strings);
   cursor_left();
 }
@@ -337,17 +348,14 @@ void display_menu(enum Menu state, int new_setpoint_dmm) {
                          release_setting_bar);
 
     if (state == INPUT_ACTUATION) {
-      print_set_new_setpoint(" ACTUATION DISTANCE SETTING",
-                             " Actuation Distance", actuation_setting_bar,
-                             " Input (1-40): ", new_setpoint_dmm);
+      print_set_new_setpoint(" ACTUATION DISTANCE", actuation_setting_bar,
+                             new_setpoint_dmm);
     } else if (state == INPUT_PRESS_SENSITIVITY) {
-      print_set_new_setpoint(" PRESS SENSITIVITY SETTING", " Press Sensitivity",
-                             press_setting_bar,
-                             " Input (1-40): ", new_setpoint_dmm);
+      print_set_new_setpoint(" PRESS SENSITIVITY", press_setting_bar,
+                             new_setpoint_dmm);
     } else if (state == INPUT_RELEASE_SENSITIVITY) {
-      print_set_new_setpoint(" RELEASE SENSITIVITY SETTING",
-                             " Release Sensitivity", release_setting_bar,
-                             " Input (1-40): ", new_setpoint_dmm);
+      print_set_new_setpoint(" RELEASE SENSITIVITY", release_setting_bar,
+                             new_setpoint_dmm);
     }
   } else if (state == LIGHTING || state == INPUT_EFFECT ||
              state == INPUT_SPEED || state == INPUT_COLOR) {
@@ -361,13 +369,6 @@ void display_menu(enum Menu state, int new_setpoint_dmm) {
   } else {
     // Do nothing
   }
-}
-
-bool setpoint_valid(int setpoint_dmm) {
-  if (1 <= setpoint_dmm && setpoint_dmm <= KEY_MAX_dmm) {
-    return true;
-  }
-  return false;
 }
 
 void handle_menu(const uint16_t ch) {
@@ -447,37 +448,16 @@ void handle_menu(const uint16_t ch) {
       state = INPUT_RELEASE_SENSITIVITY;
       new_setpoint_dmm = kb_config.global_actuation_settings
                              .rapid_trigger_release_sensitivity_dmm;
-    } else if (ch == 'i' || ch == 'I') {
-      if (setpoint_valid(new_setpoint_dmm + 1)) {
-        new_setpoint_dmm++;
-      }
-    } else if (ch == 'd' || ch == 'D') {
-      if (setpoint_valid(new_setpoint_dmm - 1)) {
-        new_setpoint_dmm--;
-      }
-    } else if ('0' <= ch && ch <= '9') {
-      // reset if input would exceed double digit number
-      if (new_setpoint_dmm * 10 + ch - '0' > 99) {
-        new_setpoint_dmm = 0;
-      }
-      if (new_setpoint_dmm == 0) {
-        if ('1' <= ch && ch <= '9') {
-          new_setpoint_dmm = ch - '0';
-        }
-      } else {
-        // entering second digit
-        new_setpoint_dmm = new_setpoint_dmm * 10 + ch - '0';
-      }
-    } else if (ch == BS) {
-      if (new_setpoint_dmm >= 10) {
-        new_setpoint_dmm = new_setpoint_dmm / 10;
-      } else {
-        new_setpoint_dmm = 0;
-      }
-    } else if (ch == DEL) {
-      new_setpoint_dmm = 0;
+    } else if (ch == 'u') {
+      new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm + 1);
+    } else if (ch == 'd') {
+      new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm - 1);
+    } else if (ch == 'U') {
+      new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm + 5);
+    } else if (ch == 'D') {
+      new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm - 5);
     } else if (ch == 's' || ch == 'S') {
-      if (setpoint_valid(new_setpoint_dmm)) {
+      if (clamp_setpoint_dmm(new_setpoint_dmm)) {
         if (state == INPUT_ACTUATION) {
           kb_config.global_actuation_settings.actuation_point_dmm =
               new_setpoint_dmm;
@@ -490,44 +470,44 @@ void handle_menu(const uint16_t ch) {
         }
         eeconfig_update_kb_datablock(&kb_config);
       } else {
-        new_setpoint_dmm = 0;
+        new_setpoint_dmm = 1;
       }
-
-      break;
-    case LIGHTING:
-      if (ch == 'e' || ch == 'E') {
-        state = INPUT_EFFECT;
-      }
-      if (ch == 's' || ch == 'S') {
-        state = INPUT_SPEED;
-      }
-      if (ch == 'r' || ch == 'R') {
-        state = INPUT_BRIGHTNESS;
-      }
-      if (ch == 'c' || ch == 'C') {
-        state = INPUT_COLOR;
-      }
-      if (ch == 'b' || ch == 'B') {
-        state = MAIN;
-      }
-      break;
-    case INPUT_EFFECT:
-      break;
-    case INPUT_SPEED:
-      break;
-    case INPUT_BRIGHTNESS:
-      break;
-    case INPUT_COLOR:
-      break;
-    case KEYMAP:
-      if (ch == 'b' || ch == 'B') {
-        state = MAIN;
-      }
-      break;
-    case RESTORE_DEFAULT:
-
-      break;
     }
+
+    break;
+  case LIGHTING:
+    if (ch == 'e' || ch == 'E') {
+      state = INPUT_EFFECT;
+    }
+    if (ch == 's' || ch == 'S') {
+      state = INPUT_SPEED;
+    }
+    if (ch == 'r' || ch == 'R') {
+      state = INPUT_BRIGHTNESS;
+    }
+    if (ch == 'c' || ch == 'C') {
+      state = INPUT_COLOR;
+    }
+    if (ch == 'b' || ch == 'B') {
+      state = MAIN;
+    }
+    break;
+  case INPUT_EFFECT:
+    break;
+  case INPUT_SPEED:
+    break;
+  case INPUT_BRIGHTNESS:
+    break;
+  case INPUT_COLOR:
+    break;
+  case KEYMAP:
+    if (ch == 'b' || ch == 'B') {
+      state = MAIN;
+    }
+    break;
+  case RESTORE_DEFAULT:
+
+    break;
   }
   display_menu(state, new_setpoint_dmm);
 }
