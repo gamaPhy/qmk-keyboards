@@ -61,13 +61,13 @@ void print_main_menu(void) {
                           " MAIN MENU",
                           NL,
                           NL,
-                          " [A] Actuation",
+                          " [a] Actuation",
                           NL,
                           NL,
-                          " [L] Lighting",
+                          " [l] Lighting",
                           NL,
                           NL,
-                          " [K] Keymap",
+                          " [k] Keymap",
                           NL,
                           NL,
                           NULL};
@@ -87,12 +87,12 @@ int clamp_setpoint_dmm(int setpoint_dmm) {
 
 // Sets the contents of `setting_bar` to a bar that fills with values 1 - 40
 // Ex:
-// 20 <@@@@@@@@@@@@@@@@@@@____________________>
-// 40 <@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@>
-//  1 <@______________________________________>
+// 20 <@@@@@@@@@__________>
+// 40 <@@@@@@@@@@@@@@@@@@@>
+//  1 <@__________________>
 //
 // `setting_bar` must have a size of SETTING_BAR_SIZE + 2 to fit the potentially
-// 3 digit number
+// 2 digit number
 void create_2_digit_setting_bar(char *setting_bar, int setpoint) {
   // Maximum actuation distance is a 2 digit integer pad with leading spaces if
   // there is a 1 digit integer to align setting bar
@@ -120,9 +120,9 @@ void create_2_digit_setting_bar(char *setting_bar, int setpoint) {
 
 // Sets the contents of `setting_bar` to a bar that fills with values 1 - 255
 // Ex:
-// 127 <@@@@@@@@@@@@@@@@@@@____________________>
-// 255 <@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@>
-//   1 <@______________________________________>
+// 127 <@@@@@@@@@__________>
+// 255 <@@@@@@@@@@@@@@@@@@@>
+//   1 <@__________________>
 //
 // `setting_bar` must have a size of SETTING_BAR_SIZE + 3 to fit the potentially
 // 3 digit number
@@ -162,20 +162,20 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                             " MAIN MENU -> ACTUATION SETTINGS",
                             NL,
                             NL,
-                            " [P] Per-Key Settings ",
+                            " [p] Per-Key Settings ",
                             per_key_settings,
                             NL,
                             NL,
-                            " [L] Left Key",
+                            " [l] Left Key",
                             NL,
                             NL,
-                            " [M] Middle Key",
+                            " [m] Middle Key",
                             NL,
                             NL,
-                            " [R] Right Key",
+                            " [r] Right Key",
                             NL,
                             NL,
-                            " [B] Back <-",
+                            " [b] Back <-",
                             NL,
                             NULL};
     print_strings_serial(menu_strings);
@@ -188,27 +188,27 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                               " MAIN MENU -> ACTUATION SETTINGS",
                               NL,
                               NL,
-                              " [P] Per-Key Settings ",
+                              " [p] Per-Key Settings ",
                               per_key_settings,
                               NL,
                               NL,
-                              " [R] Rapid Trigger ",
+                              " [r] Rapid Trigger ",
                               rapid_trigger_setting,
                               NL,
                               NL,
-                              " [A] Actuation Distance   ",
+                              " [a] Actuation Distance   ",
                               actuation_setting_bar,
                               NL,
                               NL,
-                              " [E] Press Sensitivity    ",
+                              " [e] Press Sensitivity    ",
                               press_setting_bar,
                               NL,
                               NL,
-                              " [L] Release Sensitivity  ",
+                              " [l] Release Sensitivity  ",
                               release_setting_bar,
                               NL,
                               NL,
-                              " [B] Back <-",
+                              " [b] Back <-",
                               NL,
                               NULL};
       print_strings_serial(menu_strings);
@@ -218,19 +218,19 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                               " MAIN MENU -> ACTUATION SETTINGS",
                               NL,
                               NL,
-                              " [P] Per-Key Settings ",
+                              " [p] Per-Key Settings ",
                               per_key_settings,
                               NL,
                               NL,
-                              " [R] Rapid Trigger ",
+                              " [r] Rapid Trigger ",
                               rapid_trigger_setting,
                               NL,
                               NL,
-                              " [A] Actuation Distance  ",
+                              " [a] Actuation Distance  ",
                               actuation_setting_bar,
                               NL,
                               NL,
-                              " [B] Back <-",
+                              " [b] Back <-",
                               NL,
                               NULL};
       print_strings_serial(menu_strings);
@@ -255,21 +255,19 @@ void print_set_new_setpoint(char *setting_name_uppercase, char *setting_bar,
   create_2_digit_setting_bar(new_setting_bar, new_setpoint_dmm);
 
   char *menu_strings[] = {
-      NL,
       " ---------------------------------------------------",
       NL,
       NL,
       setting_name_uppercase,
       NL,
       NL,
-      NL,
-      " Current ",
+      " Previous ",
       setting_bar,
+      nice,
       NL,
       NL,
-      "     New ",
+      "      New ",
       new_setting_bar,
-      NL,
       NL,
       NL,
       " [i] +1",
@@ -284,16 +282,14 @@ void print_set_new_setpoint(char *setting_name_uppercase, char *setting_bar,
       " [D] -5",
       NL,
       NL,
-      " [S] Save New Setting",
+      " [s] Save New Setting",
       NL,
       NL,
-      " [X] Close",
-      nice,
-      NL,
+      " [x] Close",
       NL,
       NULL};
   print_strings_serial(menu_strings);
-  cursor_left();
+  cursor_down();
 }
 
 void print_lighting_menu(char *brightness_setting_bar,
@@ -302,21 +298,21 @@ void print_lighting_menu(char *brightness_setting_bar,
                           " MAIN MENU -> LIGHTING SETTINGS",
                           NL,
                           NL,
-                          " [E] Effect",
+                          " [e] Effect",
                           NL,
                           NL,
-                          " [C] Color",
+                          " [c] Color",
                           NL,
                           NL,
-                          " [R] Brightness  ",
+                          " [r] Brightness  ",
                           brightness_setting_bar,
                           NL,
                           NL,
-                          " [S] Speed       ",
+                          " [s] Speed       ",
                           speed_setting_bar,
                           NL,
                           NL,
-                          " [B] Back <-",
+                          " [b] Back <-",
                           NL,
                           NULL};
   print_strings_serial(menu_strings);
@@ -463,23 +459,18 @@ void handle_menu(const uint16_t ch) {
     } else if (ch == 'D') {
       new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm - 5);
     } else if (ch == 's' || ch == 'S') {
-      if (clamp_setpoint_dmm(new_setpoint_dmm)) {
-        if (state == INPUT_ACTUATION) {
-          kb_config.global_actuation_settings.actuation_point_dmm =
-              new_setpoint_dmm;
-        } else if (state == INPUT_RELEASE_SENSITIVITY) {
-          kb_config.global_actuation_settings
-              .rapid_trigger_release_sensitivity_dmm = new_setpoint_dmm;
-        } else if (state == INPUT_PRESS_SENSITIVITY) {
-          kb_config.global_actuation_settings
-              .rapid_trigger_press_sensitivity_dmm = new_setpoint_dmm;
-        }
-        eeconfig_update_kb_datablock(&kb_config);
-      } else {
-        new_setpoint_dmm = 1;
+      if (state == INPUT_ACTUATION) {
+        kb_config.global_actuation_settings.actuation_point_dmm =
+            new_setpoint_dmm;
+      } else if (state == INPUT_RELEASE_SENSITIVITY) {
+        kb_config.global_actuation_settings
+            .rapid_trigger_release_sensitivity_dmm = new_setpoint_dmm;
+      } else if (state == INPUT_PRESS_SENSITIVITY) {
+        kb_config.global_actuation_settings
+            .rapid_trigger_press_sensitivity_dmm = new_setpoint_dmm;
       }
+      eeconfig_update_kb_datablock(&kb_config);
     }
-
     break;
   case LIGHTING:
     if (ch == 'e' || ch == 'E') {
