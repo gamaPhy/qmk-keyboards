@@ -61,13 +61,13 @@ void print_main_menu(void) {
                           " MAIN MENU",
                           NL,
                           NL,
-                          " [a] Actuation",
+                          " a = Actuation",
                           NL,
                           NL,
-                          " [l] Lighting",
+                          " l = Lighting",
                           NL,
                           NL,
-                          " [k] Keymap",
+                          " k = Keymap",
                           NL,
                           NL,
                           NULL};
@@ -162,20 +162,20 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                             " MAIN MENU -> ACTUATION SETTINGS",
                             NL,
                             NL,
-                            " [p] Per-Key Settings ",
+                            " p = Per-Key Settings ",
                             per_key_settings,
                             NL,
                             NL,
-                            " [l] Left Key",
+                            " l = Left Key",
                             NL,
                             NL,
-                            " [m] Middle Key",
+                            " m = Middle Key",
                             NL,
                             NL,
-                            " [r] Right Key",
+                            " r = Right Key",
                             NL,
                             NL,
-                            " [b] Back <-",
+                            " b = Back <-",
                             NL,
                             NULL};
     print_strings_serial(menu_strings);
@@ -188,27 +188,27 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                               " MAIN MENU -> ACTUATION SETTINGS",
                               NL,
                               NL,
-                              " [p] Per-Key Settings ",
+                              " p = Per-Key Settings ",
                               per_key_settings,
                               NL,
                               NL,
-                              " [r] Rapid Trigger ",
+                              " r = Rapid Trigger ",
                               rapid_trigger_setting,
                               NL,
                               NL,
-                              " [a] Actuation Distance   ",
+                              " a = Actuation Distance   ",
                               actuation_setting_bar,
                               NL,
                               NL,
-                              " [e] Press Sensitivity    ",
+                              " e = Press Sensitivity    ",
                               press_setting_bar,
                               NL,
                               NL,
-                              " [l] Release Sensitivity  ",
+                              " l = Release Sensitivity  ",
                               release_setting_bar,
                               NL,
                               NL,
-                              " [b] Back <-",
+                              " b = Back <-",
                               NL,
                               NULL};
       print_strings_serial(menu_strings);
@@ -218,19 +218,19 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                               " MAIN MENU -> ACTUATION SETTINGS",
                               NL,
                               NL,
-                              " [p] Per-Key Settings ",
+                              " p = Per-Key Settings ",
                               per_key_settings,
                               NL,
                               NL,
-                              " [r] Rapid Trigger ",
+                              " r = Rapid Trigger ",
                               rapid_trigger_setting,
                               NL,
                               NL,
-                              " [a] Actuation Distance  ",
+                              " a = Actuation Distance  ",
                               actuation_setting_bar,
                               NL,
                               NL,
-                              " [b] Back <-",
+                              " b = Back <-",
                               NL,
                               NULL};
       print_strings_serial(menu_strings);
@@ -270,22 +270,22 @@ void print_set_new_setpoint(char *setting_name_uppercase, char *setting_bar,
       new_setting_bar,
       NL,
       NL,
-      " [i] +1",
+      " i = +1",
       NL,
       NL,
-      " [d] -1",
+      " d = -1",
       NL,
       NL,
-      " [I] +5",
+      " I = +5",
       NL,
       NL,
-      " [D] -5",
+      " D = -5",
       NL,
       NL,
-      " [s] Save New Setting",
+      " s = Save New Setting",
       NL,
       NL,
-      " [x] Close",
+      " x = Close",
       NL,
       NULL};
   print_strings_serial(menu_strings);
@@ -298,21 +298,21 @@ void print_lighting_menu(char *brightness_setting_bar,
                           " MAIN MENU -> LIGHTING SETTINGS",
                           NL,
                           NL,
-                          " [e] Effect",
+                          " e = Effect",
                           NL,
                           NL,
-                          " [c] Color",
+                          " c = Color",
                           NL,
                           NL,
-                          " [r] Brightness  ",
+                          " r = Brightness  ",
                           brightness_setting_bar,
                           NL,
                           NL,
-                          " [s] Speed       ",
+                          " s = Speed       ",
                           speed_setting_bar,
                           NL,
                           NL,
-                          " [b] Back <-",
+                          " b = Back <-",
                           NL,
                           NULL};
   print_strings_serial(menu_strings);
@@ -490,12 +490,24 @@ void handle_menu(const uint16_t ch) {
     }
     break;
   case INPUT_EFFECT:
+    if (ch == 'b' || ch == 'B') {
+      state = MAIN;
+    }
     break;
   case INPUT_SPEED:
+    if (ch == 'b' || ch == 'B') {
+      state = MAIN;
+    }
     break;
   case INPUT_BRIGHTNESS:
+    if (ch == 'b' || ch == 'B') {
+      state = MAIN;
+    }
     break;
   case INPUT_COLOR:
+    if (ch == 'b' || ch == 'B') {
+      state = MAIN;
+    }
     break;
   case KEYMAP:
     if (ch == 'b' || ch == 'B') {
