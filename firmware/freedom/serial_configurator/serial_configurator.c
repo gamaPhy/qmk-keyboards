@@ -9,16 +9,16 @@ kb_config_t kb_config;
 
 enum Menu {
   MAIN,
-  INPUT_ACTUATION,
-  INPUT_PRESS_SENSITIVITY,
-  INPUT_RELEASE_SENSITIVITY,
+  SET_ACTUATION,
+  SET_PRESS_SENSITIVITY,
+  SET_RELEASE_SENSITIVITY,
   ACTUATION_PER_KEY,
   KEYMAP,
   LIGHTING,
-  INPUT_EFFECT,
-  INPUT_SPEED,
-  INPUT_BRIGHTNESS,
-  INPUT_COLOR,
+  SET_EFFECT,
+  SET_SPEED,
+  SET_BRIGHTNESS,
+  SET_COLOR,
   RESTORE_DEFAULT,
 };
 
@@ -158,13 +158,22 @@ void print_actuation_menu(enum Menu state, char *actuation_setting_bar,
   char *actuation_prefix = " a = ";
   char *press_prefix = " e = ";
   char *release_prefix = " l = ";
+  char *actuation_suffix = "";
+  char *press_suffix = "";
+  char *release_suffix = "";
 
-  if (state == INPUT_ACTUATION) {
-    actuation_prefix = " --> ";
-  } else if (state == INPUT_PRESS_SENSITIVITY) {
-    press_prefix = " --> ";
-  } else if (state == INPUT_RELEASE_SENSITIVITY) {
-    release_prefix = " --> ";
+  char *select_prefix = " --> ";
+  char *select_suffix = " <--";
+
+  if (state == SET_ACTUATION) {
+    actuation_prefix = select_prefix;
+    actuation_suffix = select_suffix;
+  } else if (state == SET_PRESS_SENSITIVITY) {
+    press_prefix = select_prefix;
+    press_suffix = select_suffix;
+  } else if (state == SET_RELEASE_SENSITIVITY) {
+    release_prefix = select_prefix;
+    release_suffix = select_suffix;
   }
 
   if (kb_config.use_per_key_settings) {
@@ -211,16 +220,19 @@ void print_actuation_menu(enum Menu state, char *actuation_setting_bar,
                               actuation_prefix,
                               "Actuation Distance   ",
                               actuation_setting_bar,
+                              actuation_suffix,
                               NL,
                               NL,
                               press_prefix,
                               "Press Sensitivity    ",
                               press_setting_bar,
+                              press_suffix,
                               NL,
                               NL,
                               release_prefix,
                               "Release Sensitivity  ",
                               release_setting_bar,
+                              release_suffix,
                               NL,
                               NL,
                               NL,
@@ -258,8 +270,10 @@ void print_actuation_menu(enum Menu state, char *actuation_setting_bar,
                               NL,
                               NL,
                               NL,
-                              " a = Actuation Distance   ",
+                              select_prefix,
+                              "Actuation Distance   ",
                               actuation_setting_bar,
+                              select_suffix,
                               NL,
                               NL,
                               NL,
@@ -304,7 +318,7 @@ void print_lighting_menu(char *brightness_setting_bar,
                           brightness_setting_bar,
                           NL,
                           NL,
-                          " s = Speed       ",
+                          " p = Speed       ",
                           speed_setting_bar,
                           NL,
                           NL,
@@ -315,14 +329,14 @@ void print_lighting_menu(char *brightness_setting_bar,
   cursor_down();
 }
 
-void display_menu(enum Menu state, int new_setpoint_dmm) {
+void display_menu(enum Menu state) {
   reset_terminal();
 
   if (state == MAIN) {
     print_main_menu();
-  } else if (state == ACTUATION_PER_KEY || state == INPUT_ACTUATION ||
-             state == INPUT_PRESS_SENSITIVITY ||
-             state == INPUT_RELEASE_SENSITIVITY) {
+  } else if (state == ACTUATION_PER_KEY || state == SET_ACTUATION ||
+             state == SET_PRESS_SENSITIVITY ||
+             state == SET_RELEASE_SENSITIVITY) {
     char actuation_setting_bar[SETTING_BAR_SIZE + 2];
     create_2_digit_setting_bar(
         actuation_setting_bar,
@@ -341,14 +355,13 @@ void display_menu(enum Menu state, int new_setpoint_dmm) {
     print_actuation_menu(state, actuation_setting_bar, press_setting_bar,
                          release_setting_bar);
 
-    if (state == INPUT_ACTUATION) {
-    } else if (state == INPUT_PRESS_SENSITIVITY) {
-    } else if (state == INPUT_RELEASE_SENSITIVITY) {
+    if (state == SET_ACTUATION) {
+    } else if (state == SET_PRESS_SENSITIVITY) {
+    } else if (state == SET_RELEASE_SENSITIVITY) {
     }
 
-  } else if (state == LIGHTING || state == INPUT_BRIGHTNESS ||
-             state == INPUT_EFFECT || state == INPUT_SPEED ||
-             state == INPUT_COLOR) {
+  } else if (state == LIGHTING || state == SET_BRIGHTNESS ||
+             state == SET_EFFECT || state == SET_SPEED || state == SET_COLOR) {
     char speed_setting_bar[SETTING_BAR_SIZE + 3];
     create_3_digit_setting_bar(speed_setting_bar, rgb_matrix_get_speed());
 
@@ -366,7 +379,6 @@ void display_menu(enum Menu state, int new_setpoint_dmm) {
 
 void handle_menu(const uint16_t ch) {
   static enum Menu state = MAIN;
-  static int new_setpoint_dmm = 0;
 
   switch (state) {
   case MAIN:
@@ -374,9 +386,7 @@ void handle_menu(const uint16_t ch) {
       if (kb_config.use_per_key_settings) {
         state = ACTUATION_PER_KEY;
       } else {
-        state = INPUT_ACTUATION;
-        new_setpoint_dmm =
-            kb_config.global_actuation_settings.actuation_point_dmm;
+        state = SET_ACTUATION;
       }
     } else if (ch == 'l' || ch == 'L') {
       state = LIGHTING;
@@ -387,97 +397,149 @@ void handle_menu(const uint16_t ch) {
       state = MAIN;
     } else if (ch == 'p' || ch == 'P') {
       kb_config.use_per_key_settings = !kb_config.use_per_key_settings;
-      state = INPUT_ACTUATION;
-      new_setpoint_dmm =
-          kb_config.global_actuation_settings.actuation_point_dmm;
+      state = SET_ACTUATION;
     } else if (ch == 's' || ch == 'S') {
       eeconfig_update_kb_datablock(&kb_config);
     }
     break;
   // 'OR' logic equivalent for switch statements
-  case INPUT_ACTUATION:
-  case INPUT_PRESS_SENSITIVITY:
-  case INPUT_RELEASE_SENSITIVITY:
-    // can only change press and release sensitivity when rapid trigger is on
-    if (kb_config.global_actuation_settings.rapid_trigger) {
-      if (ch == 'e' || ch == 'E') {
-        state = INPUT_PRESS_SENSITIVITY;
-        new_setpoint_dmm = kb_config.global_actuation_settings
-                               .rapid_trigger_press_sensitivity_dmm;
-      } else if (ch == 'l' || ch == 'L') {
-        state = INPUT_RELEASE_SENSITIVITY;
-        new_setpoint_dmm = kb_config.global_actuation_settings
-                               .rapid_trigger_release_sensitivity_dmm;
-      }
-    }
+  case SET_ACTUATION:
     if (ch == 'b' || ch == 'B') {
       state = MAIN;
-    } else if (ch == 'p' || ch == 'P') {
-      kb_config.use_per_key_settings = !kb_config.use_per_key_settings;
-      state = ACTUATION_PER_KEY;
+    } else if (ch == 'e' || ch == 'E') {
+      // can only change press and release sensitivity when rapid trigger is on
+      if (kb_config.global_actuation_settings.rapid_trigger) {
+        state = SET_PRESS_SENSITIVITY;
+      }
+    } else if (ch == 'l' || ch == 'L') {
+      // can only change press and release sensitivity when rapid trigger is on
+      if (kb_config.global_actuation_settings.rapid_trigger) {
+        state = SET_RELEASE_SENSITIVITY;
+      }
     } else if (ch == 'r' || ch == 'R') {
       kb_config.global_actuation_settings.rapid_trigger =
           !kb_config.global_actuation_settings.rapid_trigger;
-    } else if (ch == 'a' || ch == 'A') {
-      state = INPUT_ACTUATION;
-      new_setpoint_dmm =
-          kb_config.global_actuation_settings.actuation_point_dmm;
     } else if (ch == 'i') {
-      new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm + 1);
-    } else if (ch == 'd') {
-      new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm - 1);
-    } else if (ch == 'I') {
-      new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm + 5);
-    } else if (ch == 'D') {
-      new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm - 5);
-    }
-    if (state == INPUT_ACTUATION) {
       kb_config.global_actuation_settings.actuation_point_dmm =
-          new_setpoint_dmm;
-    } else if (state == INPUT_RELEASE_SENSITIVITY) {
-      kb_config.global_actuation_settings
-          .rapid_trigger_release_sensitivity_dmm = new_setpoint_dmm;
-    } else if (state == INPUT_PRESS_SENSITIVITY) {
-      kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm =
-          new_setpoint_dmm;
+          clamp_setpoint_dmm(
+              kb_config.global_actuation_settings.actuation_point_dmm + 1);
+    } else if (ch == 'd') {
+      kb_config.global_actuation_settings.actuation_point_dmm =
+          clamp_setpoint_dmm(
+              kb_config.global_actuation_settings.actuation_point_dmm - 1);
+    } else if (ch == 'I') {
+      kb_config.global_actuation_settings.actuation_point_dmm =
+          clamp_setpoint_dmm(
+              kb_config.global_actuation_settings.actuation_point_dmm + 5);
+    } else if (ch == 'D') {
+      kb_config.global_actuation_settings.actuation_point_dmm =
+          clamp_setpoint_dmm(
+              kb_config.global_actuation_settings.actuation_point_dmm - 5);
     }
-    if (ch == 's' || ch == 'S') {
-      eeconfig_update_kb_datablock(&kb_config);
+    break;
+  case SET_PRESS_SENSITIVITY:
+    if (ch == 'b' || ch == 'B') {
+      state = MAIN;
+    } else if (ch == 'a' || ch == 'A') {
+      state = SET_ACTUATION;
+    } else if (ch == 'l' || ch == 'L') {
+      state = SET_RELEASE_SENSITIVITY;
+    } else if (ch == 'r' || ch == 'R') {
+      kb_config.global_actuation_settings.rapid_trigger =
+          !kb_config.global_actuation_settings.rapid_trigger;
+      state = SET_ACTUATION;
+    } else if (ch == 'i') {
+      kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm =
+          clamp_setpoint_dmm(kb_config.global_actuation_settings
+                                 .rapid_trigger_press_sensitivity_dmm +
+                             1);
+    } else if (ch == 'd') {
+      kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm =
+          clamp_setpoint_dmm(kb_config.global_actuation_settings
+                                 .rapid_trigger_press_sensitivity_dmm -
+                             1);
+    } else if (ch == 'I') {
+      kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm =
+          clamp_setpoint_dmm(kb_config.global_actuation_settings
+                                 .rapid_trigger_press_sensitivity_dmm +
+                             5);
+    } else if (ch == 'D') {
+      kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm =
+          clamp_setpoint_dmm(kb_config.global_actuation_settings
+                                 .rapid_trigger_press_sensitivity_dmm -
+                             5);
+    }
+    break;
+  case SET_RELEASE_SENSITIVITY:
+    if (ch == 'b' || ch == 'B') {
+      state = MAIN;
+    } else if (ch == 'a' || ch == 'A') {
+      state = SET_ACTUATION;
+    } else if (ch == 'e' || ch == 'E') {
+      state = SET_PRESS_SENSITIVITY;
+    } else if (ch == 'r' || ch == 'R') {
+      kb_config.global_actuation_settings.rapid_trigger =
+          !kb_config.global_actuation_settings.rapid_trigger;
+      state = SET_ACTUATION;
+    } else if (ch == 'i') {
+      kb_config.global_actuation_settings
+          .rapid_trigger_release_sensitivity_dmm =
+          clamp_setpoint_dmm(kb_config.global_actuation_settings
+                                 .rapid_trigger_release_sensitivity_dmm +
+                             1);
+    } else if (ch == 'd') {
+      kb_config.global_actuation_settings
+          .rapid_trigger_release_sensitivity_dmm =
+          clamp_setpoint_dmm(kb_config.global_actuation_settings
+                                 .rapid_trigger_release_sensitivity_dmm -
+                             1);
+    } else if (ch == 'I') {
+      kb_config.global_actuation_settings
+          .rapid_trigger_release_sensitivity_dmm =
+          clamp_setpoint_dmm(kb_config.global_actuation_settings
+                                 .rapid_trigger_release_sensitivity_dmm +
+                             5);
+    } else if (ch == 'D') {
+      kb_config.global_actuation_settings
+          .rapid_trigger_release_sensitivity_dmm =
+          clamp_setpoint_dmm(kb_config.global_actuation_settings
+                                 .rapid_trigger_release_sensitivity_dmm -
+                             5);
     }
     break;
   case LIGHTING:
     if (ch == 'e' || ch == 'E') {
-      state = INPUT_EFFECT;
+      state = SET_EFFECT;
     }
-    if (ch == 's' || ch == 'S') {
-      state = INPUT_SPEED;
+    if (ch == 'p' || ch == 'P') {
+      state = SET_SPEED;
     }
     if (ch == 'r' || ch == 'R') {
-      state = INPUT_BRIGHTNESS;
+      state = SET_BRIGHTNESS;
     }
     if (ch == 'c' || ch == 'C') {
-      state = INPUT_COLOR;
+      state = SET_COLOR;
     }
     if (ch == 'b' || ch == 'B') {
       state = MAIN;
     }
     break;
-  case INPUT_EFFECT:
+  case SET_EFFECT:
     if (ch == 'b' || ch == 'B') {
       state = MAIN;
     }
     break;
-  case INPUT_SPEED:
+  case SET_SPEED:
     if (ch == 'b' || ch == 'B') {
       state = MAIN;
     }
     break;
-  case INPUT_BRIGHTNESS:
+  case SET_BRIGHTNESS:
     if (ch == 'b' || ch == 'B') {
       state = MAIN;
     }
     break;
-  case INPUT_COLOR:
+  case SET_COLOR:
     if (ch == 'b' || ch == 'B') {
       state = MAIN;
     }
@@ -491,35 +553,13 @@ void handle_menu(const uint16_t ch) {
 
     break;
   }
-  display_menu(state, new_setpoint_dmm);
+  if (ch == 's' || ch == 'S') {
+    eeconfig_update_kb_datablock(&kb_config);
+  }
+  display_menu(state);
 }
 
 void virtser_recv(const uint8_t ch) {
-  static bool escaping = false;
   dprintf("virtser_recv: ch: %3u \n", ch);
-  // Handling of arrow characters
-  if (ch == ESC) {
-    escaping = true;
-  } else if (escaping == true && ch == '[') {
-    // consume intermediate '[' character received for arrow commands
-  } else if (escaping) {
-    switch (ch) {
-    case 'A':
-      handle_menu(ARROW_UP);
-      break;
-    case 'B':
-      handle_menu(ARROW_DOWN);
-      break;
-    case 'C':
-      handle_menu(ARROW_RIGHT);
-      break;
-    case 'D':
-      handle_menu(ARROW_LEFT);
-      break;
-    }
-    escaping = false;
-  } else {
-    handle_menu(ch);
-    escaping = false;
-  }
+  handle_menu(ch);
 }
