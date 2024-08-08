@@ -9,10 +9,10 @@ kb_config_t kb_config;
 
 enum Menu {
   MAIN,
-  ACTUATION,
   INPUT_ACTUATION,
   INPUT_PRESS_SENSITIVITY,
   INPUT_RELEASE_SENSITIVITY,
+  ACTUATION_PER_KEY,
   KEYMAP,
   LIGHTING,
   INPUT_EFFECT,
@@ -151,10 +151,21 @@ void create_3_digit_setting_bar(char *setting_bar, int setpoint) {
   strcat(setting_bar, setting_fill);
 }
 
-void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
-                          char *release_setting_bar) {
+void print_actuation_menu(enum Menu state, char *actuation_setting_bar,
+                          char *press_setting_bar, char *release_setting_bar) {
   char *per_key_settings;
   char *rapid_trigger_setting;
+  char *actuation_prefix = " a = ";
+  char *press_prefix = " e = ";
+  char *release_prefix = " l = ";
+
+  if (state == INPUT_ACTUATION) {
+    actuation_prefix = " --> ";
+  } else if (state == INPUT_PRESS_SENSITIVITY) {
+    press_prefix = " --> ";
+  } else if (state == INPUT_RELEASE_SENSITIVITY) {
+    release_prefix = " --> ";
+  }
 
   if (kb_config.use_per_key_settings) {
     per_key_settings = " <ON>";
@@ -196,16 +207,36 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                               rapid_trigger_setting,
                               NL,
                               NL,
-                              " a = Actuation Distance   ",
+                              NL,
+                              actuation_prefix,
+                              "Actuation Distance   ",
                               actuation_setting_bar,
                               NL,
                               NL,
-                              " e = Press Sensitivity    ",
+                              press_prefix,
+                              "Press Sensitivity    ",
                               press_setting_bar,
                               NL,
                               NL,
-                              " l = Release Sensitivity  ",
+                              release_prefix,
+                              "Release Sensitivity  ",
                               release_setting_bar,
+                              NL,
+                              NL,
+                              NL,
+                              " i = +1",
+                              NL,
+                              NL,
+                              " d = -1",
+                              NL,
+                              NL,
+                              " I = +5",
+                              NL,
+                              NL,
+                              " D = -5",
+                              NL,
+                              NL,
+                              " s = Save Settings",
                               NL,
                               NL,
                               " b = Back <-",
@@ -226,8 +257,25 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                               rapid_trigger_setting,
                               NL,
                               NL,
-                              " --> Actuation Distance   ",
+                              NL,
+                              " a = Actuation Distance   ",
                               actuation_setting_bar,
+                              NL,
+                              NL,
+                              NL,
+                              " i = +1",
+                              NL,
+                              NL,
+                              " d = -1",
+                              NL,
+                              NL,
+                              " I = +5",
+                              NL,
+                              NL,
+                              " D = -5",
+                              NL,
+                              NL,
+                              " s = Save Settings",
                               NL,
                               NL,
                               " b = Back <-",
@@ -237,58 +285,6 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
     }
   }
 
-  cursor_down();
-}
-
-void print_set_new_setpoint(char *setting_name_uppercase, char *setting_bar,
-                            int new_setpoint_dmm) {
-  char nice[69] = {'\0'};
-  if (new_setpoint_dmm == 69) {
-    strcpy(nice, "              Nice.");
-  }
-  char new_setpoint_str[2] = {'\0'};
-  if (new_setpoint_dmm != 0) {
-    sprintf(new_setpoint_str, "%d", new_setpoint_dmm);
-  }
-
-  char new_setting_bar[SETTING_BAR_SIZE + 2];
-  create_2_digit_setting_bar(new_setting_bar, new_setpoint_dmm);
-
-  char *menu_strings[] = {
-      " ---------------------------------------------------",
-      NL,
-      NL,
-      setting_name_uppercase,
-      NL,
-      NL,
-      " Previous ",
-      setting_bar,
-      nice,
-      NL,
-      NL,
-      "      New ",
-      new_setting_bar,
-      NL,
-      NL,
-      " i = +1",
-      NL,
-      NL,
-      " d = -1",
-      NL,
-      NL,
-      " I = +5",
-      NL,
-      NL,
-      " D = -5",
-      NL,
-      NL,
-      " s = Save New Setting",
-      NL,
-      NL,
-      " x = Close",
-      NL,
-      NULL};
-  print_strings_serial(menu_strings);
   cursor_down();
 }
 
@@ -324,7 +320,7 @@ void display_menu(enum Menu state, int new_setpoint_dmm) {
 
   if (state == MAIN) {
     print_main_menu();
-  } else if (state == ACTUATION || state == INPUT_ACTUATION ||
+  } else if (state == ACTUATION_PER_KEY || state == INPUT_ACTUATION ||
              state == INPUT_PRESS_SENSITIVITY ||
              state == INPUT_RELEASE_SENSITIVITY) {
     char actuation_setting_bar[SETTING_BAR_SIZE + 2];
@@ -342,19 +338,14 @@ void display_menu(enum Menu state, int new_setpoint_dmm) {
                                kb_config.global_actuation_settings
                                    .rapid_trigger_release_sensitivity_dmm);
 
-    print_actuation_menu(actuation_setting_bar, press_setting_bar,
+    print_actuation_menu(state, actuation_setting_bar, press_setting_bar,
                          release_setting_bar);
 
     if (state == INPUT_ACTUATION) {
-      print_set_new_setpoint(" ACTUATION DISTANCE", actuation_setting_bar,
-                             new_setpoint_dmm);
     } else if (state == INPUT_PRESS_SENSITIVITY) {
-      print_set_new_setpoint(" PRESS SENSITIVITY", press_setting_bar,
-                             new_setpoint_dmm);
     } else if (state == INPUT_RELEASE_SENSITIVITY) {
-      print_set_new_setpoint(" RELEASE SENSITIVITY", release_setting_bar,
-                             new_setpoint_dmm);
     }
+
   } else if (state == LIGHTING || state == INPUT_BRIGHTNESS ||
              state == INPUT_EFFECT || state == INPUT_SPEED ||
              state == INPUT_COLOR) {
@@ -380,76 +371,57 @@ void handle_menu(const uint16_t ch) {
   switch (state) {
   case MAIN:
     if (ch == 'a' || ch == 'A') {
-      state = ACTUATION;
-    } else if (ch == 'l' || ch == 'L') {
-      state = LIGHTING;
-    }
-    break;
-  case ACTUATION:
-    if (ch == 'b' || ch == 'B') {
-      state = MAIN;
-    } else if (ch == 'p' || ch == 'P') {
-      kb_config.use_per_key_settings = !kb_config.use_per_key_settings;
-      eeconfig_update_kb_datablock(&kb_config);
-    }
-    if (!kb_config.use_per_key_settings) {
-      // only allow changing global settings when per-key settings are off
-      if (ch == 'r' || ch == 'R') {
-        kb_config.global_actuation_settings.rapid_trigger =
-            !kb_config.global_actuation_settings.rapid_trigger;
-        eeconfig_update_kb_datablock(&kb_config);
-      } else if (ch == 'a' || ch == 'A') {
+      if (kb_config.use_per_key_settings) {
+        state = ACTUATION_PER_KEY;
+      } else {
         state = INPUT_ACTUATION;
         new_setpoint_dmm =
             kb_config.global_actuation_settings.actuation_point_dmm;
       }
-
-      // can only change press and release sensitivity when rapid trigger is
-      // on
-      if (kb_config.global_actuation_settings.rapid_trigger) {
-        if (ch == 'e' || ch == 'E') {
-          state = INPUT_PRESS_SENSITIVITY;
-          new_setpoint_dmm = kb_config.global_actuation_settings
-                                 .rapid_trigger_press_sensitivity_dmm;
-        } else if (ch == 'l' || ch == 'L') {
-          state = INPUT_RELEASE_SENSITIVITY;
-          new_setpoint_dmm = kb_config.global_actuation_settings
-                                 .rapid_trigger_release_sensitivity_dmm;
-        }
-      }
+    } else if (ch == 'l' || ch == 'L') {
+      state = LIGHTING;
+    }
+    break;
+  case ACTUATION_PER_KEY:
+    if (ch == 'b' || ch == 'B') {
+      state = MAIN;
+    } else if (ch == 'p' || ch == 'P') {
+      kb_config.use_per_key_settings = !kb_config.use_per_key_settings;
+      state = INPUT_ACTUATION;
+      new_setpoint_dmm =
+          kb_config.global_actuation_settings.actuation_point_dmm;
+    } else if (ch == 's' || ch == 'S') {
+      eeconfig_update_kb_datablock(&kb_config);
     }
     break;
   // 'OR' logic equivalent for switch statements
   case INPUT_ACTUATION:
   case INPUT_PRESS_SENSITIVITY:
   case INPUT_RELEASE_SENSITIVITY:
+    // can only change press and release sensitivity when rapid trigger is on
+    if (kb_config.global_actuation_settings.rapid_trigger) {
+      if (ch == 'e' || ch == 'E') {
+        state = INPUT_PRESS_SENSITIVITY;
+        new_setpoint_dmm = kb_config.global_actuation_settings
+                               .rapid_trigger_press_sensitivity_dmm;
+      } else if (ch == 'l' || ch == 'L') {
+        state = INPUT_RELEASE_SENSITIVITY;
+        new_setpoint_dmm = kb_config.global_actuation_settings
+                               .rapid_trigger_release_sensitivity_dmm;
+      }
+    }
     if (ch == 'b' || ch == 'B') {
       state = MAIN;
-    } else if (ch == 'x' || ch == 'X') {
-      // cancelling setting the setpoint
-      state = ACTUATION;
-      new_setpoint_dmm = 0;
     } else if (ch == 'p' || ch == 'P') {
       kb_config.use_per_key_settings = !kb_config.use_per_key_settings;
-      eeconfig_update_kb_datablock(&kb_config);
-      state = ACTUATION;
+      state = ACTUATION_PER_KEY;
     } else if (ch == 'r' || ch == 'R') {
       kb_config.global_actuation_settings.rapid_trigger =
           !kb_config.global_actuation_settings.rapid_trigger;
-      eeconfig_update_kb_datablock(&kb_config);
-      state = ACTUATION;
     } else if (ch == 'a' || ch == 'A') {
       state = INPUT_ACTUATION;
       new_setpoint_dmm =
           kb_config.global_actuation_settings.actuation_point_dmm;
-    } else if (ch == 'e' || ch == 'E') {
-      state = INPUT_PRESS_SENSITIVITY;
-      new_setpoint_dmm = kb_config.global_actuation_settings
-                             .rapid_trigger_press_sensitivity_dmm;
-    } else if (ch == 'l' || ch == 'L') {
-      state = INPUT_RELEASE_SENSITIVITY;
-      new_setpoint_dmm = kb_config.global_actuation_settings
-                             .rapid_trigger_release_sensitivity_dmm;
     } else if (ch == 'i') {
       new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm + 1);
     } else if (ch == 'd') {
