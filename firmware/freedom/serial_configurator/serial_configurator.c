@@ -226,7 +226,7 @@ void print_actuation_menu(char *actuation_setting_bar, char *press_setting_bar,
                               rapid_trigger_setting,
                               NL,
                               NL,
-                              " a = Actuation Distance  ",
+                              " --> Actuation Distance   ",
                               actuation_setting_bar,
                               NL,
                               NL,
@@ -458,17 +458,18 @@ void handle_menu(const uint16_t ch) {
       new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm + 5);
     } else if (ch == 'D') {
       new_setpoint_dmm = clamp_setpoint_dmm(new_setpoint_dmm - 5);
-    } else if (ch == 's' || ch == 'S') {
-      if (state == INPUT_ACTUATION) {
-        kb_config.global_actuation_settings.actuation_point_dmm =
-            new_setpoint_dmm;
-      } else if (state == INPUT_RELEASE_SENSITIVITY) {
-        kb_config.global_actuation_settings
-            .rapid_trigger_release_sensitivity_dmm = new_setpoint_dmm;
-      } else if (state == INPUT_PRESS_SENSITIVITY) {
-        kb_config.global_actuation_settings
-            .rapid_trigger_press_sensitivity_dmm = new_setpoint_dmm;
-      }
+    }
+    if (state == INPUT_ACTUATION) {
+      kb_config.global_actuation_settings.actuation_point_dmm =
+          new_setpoint_dmm;
+    } else if (state == INPUT_RELEASE_SENSITIVITY) {
+      kb_config.global_actuation_settings
+          .rapid_trigger_release_sensitivity_dmm = new_setpoint_dmm;
+    } else if (state == INPUT_PRESS_SENSITIVITY) {
+      kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm =
+          new_setpoint_dmm;
+    }
+    if (ch == 's' || ch == 'S') {
       eeconfig_update_kb_datablock(&kb_config);
     }
     break;
