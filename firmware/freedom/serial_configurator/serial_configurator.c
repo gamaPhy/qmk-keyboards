@@ -85,7 +85,8 @@ int clamp_setpoint_dmm(int setpoint_dmm) {
   }
 }
 
-// Sets the contents of `setting_bar` to a bar that fills with values 1 - 40
+// Sets the contents of `setting_bar` to a bar that fills with values
+// 1 - KEY_MAX_dmm
 // Ex:
 // 20 <@@@@@@@@@__________>
 // 40 <@@@@@@@@@@@@@@@@@@@>
@@ -416,6 +417,9 @@ void handle_menu(const uint16_t ch) {
       if (kb_config.global_actuation_settings.rapid_trigger) {
         state = SET_RELEASE_SENSITIVITY;
       }
+    } else if (ch == 'p' || ch == 'P') {
+      kb_config.use_per_key_settings = !kb_config.use_per_key_settings;
+      state = SET_ACTUATION;
     } else if (ch == 'r' || ch == 'R') {
       kb_config.global_actuation_settings.rapid_trigger =
           !kb_config.global_actuation_settings.rapid_trigger;
@@ -444,6 +448,9 @@ void handle_menu(const uint16_t ch) {
       state = SET_ACTUATION;
     } else if (ch == 'l' || ch == 'L') {
       state = SET_RELEASE_SENSITIVITY;
+    } else if (ch == 'p' || ch == 'P') {
+      kb_config.use_per_key_settings = !kb_config.use_per_key_settings;
+      state = SET_ACTUATION;
     } else if (ch == 'r' || ch == 'R') {
       kb_config.global_actuation_settings.rapid_trigger =
           !kb_config.global_actuation_settings.rapid_trigger;
@@ -477,6 +484,9 @@ void handle_menu(const uint16_t ch) {
       state = SET_ACTUATION;
     } else if (ch == 'e' || ch == 'E') {
       state = SET_PRESS_SENSITIVITY;
+    } else if (ch == 'p' || ch == 'P') {
+      kb_config.use_per_key_settings = !kb_config.use_per_key_settings;
+      state = SET_ACTUATION;
     } else if (ch == 'r' || ch == 'R') {
       kb_config.global_actuation_settings.rapid_trigger =
           !kb_config.global_actuation_settings.rapid_trigger;
