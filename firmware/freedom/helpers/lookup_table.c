@@ -1,7 +1,9 @@
-#include "lookup_table.h"
-
 #include <limits.h>
 #include <math.h>
+
+#include "quantum.h"
+
+#include "lookup_table.h"
 
 float ratio(int sensor_max, int sensor_min, int base_val) {
   return ((float)sensor_max - (float)base_val) /

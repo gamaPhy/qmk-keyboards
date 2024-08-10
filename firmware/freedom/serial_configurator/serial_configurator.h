@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../config.h"
-#include "../freedom.h"
 
 // Bar that shows setpoints graphically
 // whitespace + half of max setting + 2 encapsulation chars

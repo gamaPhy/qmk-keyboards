@@ -1,11 +1,15 @@
+#include <stdio.h>
+
 #include "quantum.h"
 #include "virtser.h"
 
+#include "../helpers/kb_config.h"
+
 #include "ascii_art.h"
 #include "serial_configurator.h"
-#include <stdio.h>
 
 kb_config_t kb_config;
+kb_config_t stored_kb_config;
 
 enum Menu {
   MAIN,
@@ -249,6 +253,9 @@ void print_actuation_menu(enum Menu state, char *actuation_setting_bar,
                               " D = -5",
                               NL,
                               NL,
+                              " c = Clear Changes",
+                              NL,
+                              NL,
                               " s = Save Settings",
                               NL,
                               NL,
@@ -288,6 +295,9 @@ void print_actuation_menu(enum Menu state, char *actuation_setting_bar,
                               NL,
                               NL,
                               " D = -5",
+                              NL,
+                              NL,
+                              " c = Clear Changes",
                               NL,
                               NL,
                               " s = Save Settings",
@@ -400,7 +410,7 @@ void handle_menu(const uint16_t ch) {
       kb_config.use_per_key_settings = !kb_config.use_per_key_settings;
       state = SET_ACTUATION;
     } else if (ch == 's' || ch == 'S') {
-      eeconfig_update_kb_datablock(&kb_config);
+      kb_config_save_to_eeprom();
     }
     break;
   // 'OR' logic equivalent for switch statements
@@ -564,7 +574,9 @@ void handle_menu(const uint16_t ch) {
     break;
   }
   if (ch == 's' || ch == 'S') {
-    eeconfig_update_kb_datablock(&kb_config);
+    kb_config_save_to_eeprom();
+  } else if (ch == 'c' || ch == 'C') {
+    kb_config_reload_from_eeprom();
   }
   display_menu(state);
 }
