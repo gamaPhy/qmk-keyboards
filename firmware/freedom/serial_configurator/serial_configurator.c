@@ -57,7 +57,6 @@ void print_strings_serial(char *lines[]) {
     send_string_serial(lines[i]);
     i++;
   }
-  cursor_right();
 }
 
 void print_main_menu(void) {
@@ -77,6 +76,7 @@ void print_main_menu(void) {
                           NULL};
 
   print_strings_serial(menu_strings);
+  cursor_right();
 }
 
 int clamp_setpoint_dmm(int setpoint_dmm) {
@@ -166,6 +166,12 @@ void print_actuation_menu(enum Menu state, char *actuation_setting_bar,
   char *actuation_suffix = "";
   char *press_suffix = "";
   char *release_suffix = "";
+  char *changes = "+";
+
+  if (kb_config.global_actuation_settings.actuation_point_dmm ==
+      stored_kb_config.global_actuation_settings.actuation_point_dmm) {
+    changes = "";
+  }
 
   char *select_prefix = " --> ";
   char *select_suffix = " <--";
@@ -202,14 +208,16 @@ void print_actuation_menu(enum Menu state, char *actuation_setting_bar,
                             NL,
                             " b = Back <-",
                             NL,
+                            NL,
                             NULL};
     print_strings_serial(menu_strings);
   } else {
-    per_key_settings = " <OFF>";
-    // Whitespace offset to align with per-key settings
+    rapid_trigger_setting = "    <OFF>";
     if (kb_config.global_actuation_settings.rapid_trigger) {
       rapid_trigger_setting = "    <ON>";
-      char *menu_strings[] = {NL,
+    }
+    per_key_settings = " <OFF>";
+    char *menu_strings_1[] = {NL,
                               " MAIN MENU -> ACTUATION SETTINGS",
                               NL,
                               NL,
@@ -228,20 +236,8 @@ void print_actuation_menu(enum Menu state, char *actuation_setting_bar,
                               actuation_suffix,
                               NL,
                               NL,
-                              press_prefix,
-                              "Press Sensitivity    ",
-                              press_setting_bar,
-                              press_suffix,
-                              NL,
-                              NL,
-                              release_prefix,
-                              "Release Sensitivity  ",
-                              release_setting_bar,
-                              release_suffix,
-                              NL,
-                              NL,
-                              NL,
-                              " i = +1",
+                              NULL};
+    char *menu_strings_2[] = {" i = +1",
                               NL,
                               NL,
                               " d = -1",
@@ -257,60 +253,39 @@ void print_actuation_menu(enum Menu state, char *actuation_setting_bar,
                               NL,
                               NL,
                               " s = Save Settings",
+                              changes,
                               NL,
                               NL,
                               " b = Back <-",
                               NL,
+                              NL,
                               NULL};
-      print_strings_serial(menu_strings);
+    // Whitespace offset to align with per-key settings
+    if (kb_config.global_actuation_settings.rapid_trigger) {
+      print_strings_serial(menu_strings_1);
+      char *rapid_trigger_extra_actuation_settings[] = {press_prefix,
+                                                        "Press Sensitivity    ",
+                                                        press_setting_bar,
+                                                        press_suffix,
+                                                        NL,
+                                                        NL,
+                                                        release_prefix,
+                                                        "Release Sensitivity  ",
+                                                        release_setting_bar,
+                                                        release_suffix,
+                                                        NL,
+                                                        NL,
+                                                        NL,
+                                                        NULL};
+      print_strings_serial(rapid_trigger_extra_actuation_settings);
+      print_strings_serial(menu_strings_2);
     } else {
-      rapid_trigger_setting = "    <OFF>";
-      char *menu_strings[] = {NL,
-                              " MAIN MENU -> ACTUATION SETTINGS",
-                              NL,
-                              NL,
-                              " p = Per-Key Settings ",
-                              per_key_settings,
-                              NL,
-                              NL,
-                              " r = Rapid Trigger ",
-                              rapid_trigger_setting,
-                              NL,
-                              NL,
-                              NL,
-                              select_prefix,
-                              "Actuation Distance   ",
-                              actuation_setting_bar,
-                              select_suffix,
-                              NL,
-                              NL,
-                              NL,
-                              " i = +1",
-                              NL,
-                              NL,
-                              " d = -1",
-                              NL,
-                              NL,
-                              " I = +5",
-                              NL,
-                              NL,
-                              " D = -5",
-                              NL,
-                              NL,
-                              " c = Clear Changes",
-                              NL,
-                              NL,
-                              " s = Save Settings",
-                              NL,
-                              NL,
-                              " b = Back <-",
-                              NL,
-                              NULL};
-      print_strings_serial(menu_strings);
+      print_strings_serial(menu_strings_1);
+      cursor_down();
+      print_strings_serial(menu_strings_2);
     }
-  }
-
-  cursor_down();
+  };
+  cursor_right();
 }
 
 void print_lighting_menu(char *brightness_setting_bar,
@@ -335,9 +310,10 @@ void print_lighting_menu(char *brightness_setting_bar,
                           NL,
                           " b = Back <-",
                           NL,
+                          NL,
                           NULL};
   print_strings_serial(menu_strings);
-  cursor_down();
+  cursor_right();
 }
 
 void display_menu(enum Menu state) {
@@ -418,12 +394,14 @@ void handle_menu(const uint16_t ch) {
     if (ch == 'b' || ch == 'B') {
       state = MAIN;
     } else if (ch == 'e' || ch == 'E') {
-      // can only change press and release sensitivity when rapid trigger is on
+      // can only change press and release sensitivity when rapid trigger is
+      // on
       if (kb_config.global_actuation_settings.rapid_trigger) {
         state = SET_PRESS_SENSITIVITY;
       }
     } else if (ch == 'l' || ch == 'L') {
-      // can only change press and release sensitivity when rapid trigger is on
+      // can only change press and release sensitivity when rapid trigger is
+      // on
       if (kb_config.global_actuation_settings.rapid_trigger) {
         state = SET_RELEASE_SENSITIVITY;
       }

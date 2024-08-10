@@ -43,6 +43,7 @@ void kb_config_reload_from_eeprom(void);
 void kb_config_factory_reset(void);
 
 extern kb_config_t kb_config;
-extern kb_config_t backup_kb_config;
+// reflects kb_config in non-volatile memory
+extern kb_config_t stored_kb_config;
 extern const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS];
 extern const int sensor_nums[MATRIX_ROWS][MATRIX_COLS];
