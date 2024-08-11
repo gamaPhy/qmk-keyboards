@@ -5,11 +5,28 @@
 
 #include "../helpers/kb_config.h"
 
+#include "../config.h"
 #include "ascii_art.h"
 #include "serial_configurator.h"
 
-kb_config_t kb_config;
-kb_config_t stored_kb_config;
+#define NL "\n\r"
+#define BS 8
+#define DEL 127
+#define ESC 27
+
+// Bar that shows setpoints graphically
+// Example:
+// <@@@@@@@@@@__________>
+#define SETTING_BAR_LEFT '<'
+#define SETTING_BAR_RIGHT '>'
+#define SETTING_BAR_FILL '@'
+#define SETTING_BAR_EMPTY '_'
+#define SETTING_BAR_DIVISIONS 20
+// leading whitespace + number of divisions + 2 encapsulation chars
+#define SETTING_BAR_SIZE 1 + SETTING_BAR_DIVISIONS + 2
+
+typedef char two_digit_setting_bar[SETTING_BAR_SIZE + 2];
+typedef char three_digit_setting_bar[SETTING_BAR_SIZE + 3];
 
 enum Menu {
   MAIN,
@@ -25,6 +42,9 @@ enum Menu {
   SET_COLOR,
   RESTORE_DEFAULT,
 };
+
+kb_config_t kb_config;
+kb_config_t stored_kb_config;
 
 void send_string_serial(char *str) {
   int i;
@@ -79,16 +99,6 @@ void print_main_menu(void) {
   cursor_right();
 }
 
-int clamp_setpoint_dmm(int setpoint_dmm) {
-  if (setpoint_dmm < 1) {
-    return 1;
-  } else if (setpoint_dmm > KEY_MAX_dmm) {
-    return KEY_MAX_dmm;
-  } else {
-    return setpoint_dmm;
-  }
-}
-
 // Sets the contents of `setting_bar` to a bar that fills with values
 // 1 - KEY_MAX_dmm
 // Ex:
@@ -106,18 +116,18 @@ void create_2_digit_setting_bar(char *setting_bar, int setpoint) {
 
   char setting_fill[SETTING_BAR_SIZE];
   setting_fill[0] = ' ';
-  setting_fill[1] = '<';
+  setting_fill[1] = SETTING_BAR_LEFT;
   int i;
   int fill_to = 0;
-  int scaled_setpoint = setpoint / 2;
-  for (i = 2; i <= (KEY_MAX_dmm / 2) + 1; i++) {
+  int scaled_setpoint = (setpoint * SETTING_BAR_DIVISIONS) / KEY_MAX_dmm;
+  for (i = 2; i <= SETTING_BAR_DIVISIONS + 1; i++) {
     fill_to++;
     if (fill_to <= scaled_setpoint) {
-      setting_fill[i] = '@';
+      setting_fill[i] = SETTING_BAR_FILL;
     } else
-      setting_fill[i] = '_';
+      setting_fill[i] = SETTING_BAR_EMPTY;
   }
-  setting_fill[i] = '>';
+  setting_fill[i] = SETTING_BAR_RIGHT;
   setting_fill[i + 1] = '\0';
   strcpy(setting_bar, setting_num_str);
   strcat(setting_bar, setting_fill);
@@ -142,15 +152,15 @@ void create_3_digit_setting_bar(char *setting_bar, int setpoint) {
   setting_fill[1] = '<';
   int i;
   int fill_to = 0;
-  int scaled_setpoint = (setpoint * 20) / 255;
-  for (i = 2; i <= (KEY_MAX_dmm / 2) + 1; i++) {
+  int scaled_setpoint = (setpoint * SETTING_BAR_DIVISIONS) / 255;
+  for (i = 2; i <= SETTING_BAR_DIVISIONS + 1; i++) {
     fill_to++;
     if (fill_to <= scaled_setpoint) {
-      setting_fill[i] = '@';
+      setting_fill[i] = SETTING_BAR_FILL;
     } else
-      setting_fill[i] = '_';
+      setting_fill[i] = SETTING_BAR_EMPTY;
   }
-  setting_fill[i] = '>';
+  setting_fill[i] = SETTING_BAR_RIGHT;
   setting_fill[i + 1] = '\0';
   strcpy(setting_bar, setting_num_str);
   strcat(setting_bar, setting_fill);

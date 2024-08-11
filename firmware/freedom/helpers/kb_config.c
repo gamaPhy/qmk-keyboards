@@ -43,3 +43,13 @@ void kb_config_factory_reset(void) {
     }
   }
 }
+
+int clamp_setpoint_dmm(int setpoint_dmm) {
+  if (setpoint_dmm < 1) {
+    return 1;
+  } else if (setpoint_dmm > KEY_MAX_dmm) {
+    return KEY_MAX_dmm;
+  } else {
+    return setpoint_dmm;
+  }
+}

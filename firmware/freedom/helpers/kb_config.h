@@ -41,6 +41,7 @@ typedef struct {
 void kb_config_save_to_eeprom(void);
 void kb_config_reload_from_eeprom(void);
 void kb_config_factory_reset(void);
+int clamp_setpoint_dmm(int);
 
 extern kb_config_t kb_config;
 // reflects kb_config in non-volatile memory

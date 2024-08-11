@@ -1,7 +1,5 @@
 #pragma once
 
-#include "quantum.h"
-
 #include "kb_config.h"
 
 void create_lookup_table(
