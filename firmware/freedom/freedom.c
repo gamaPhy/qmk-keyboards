@@ -88,32 +88,7 @@ void bootmagic_lite(void) {
 }
 
 void eeconfig_init_kb(void) {
-  kb_config.calibrated = false;
-  kb_config.use_per_key_settings = false;
-  kb_config.global_actuation_settings.rapid_trigger = true;
-  kb_config.global_actuation_settings.actuation_point_dmm = 6;
-  kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm = 2;
-  kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm = 4;
-  for (int i = 0; i < SENSOR_COUNT; i++) {
-    kb_config.per_key_actuation_settings[i].rapid_trigger = true;
-    kb_config.per_key_actuation_settings[i].actuation_point_dmm = 6;
-    kb_config.per_key_actuation_settings[i]
-        .rapid_trigger_press_sensitivity_dmm = 2;
-    kb_config.per_key_actuation_settings[i]
-        .rapid_trigger_release_sensitivity_dmm = 4;
-  }
-  for (int row = 0; row < MATRIX_ROWS; row++) {
-    for (int col = 0; col < MATRIX_COLS; col++) {
-      if (pin_scan_modes[row][col] == ANALOG) {
-        kb_config.matrix_sensor_bounds[row][col].min = -1;
-        kb_config.matrix_sensor_bounds[row][col].max = 0;
-        kb_config.matrix_scaling_params[row][col].a = 0;
-        kb_config.matrix_scaling_params[row][col].b = 0;
-        kb_config.matrix_scaling_params[row][col].b_fractional_component = 0;
-        kb_config.matrix_scaling_params[row][col].base_value = 0;
-      }
-    }
-  }
+  kb_config_factory_reset();
   kb_config_save_to_eeprom();
 }
 
@@ -144,6 +119,7 @@ void keyboard_post_init_user(void) {
   rgb_matrix_sethsv_noeeprom(HSV_BLACK);
   debug_enable = true;
   kb_config_reload_from_eeprom();
+  serial_configurator_init_setting_bars();
   for (int s = 0; s < SENSOR_COUNT; s++) {
     running_sensor_bounds[s].min = -1;
     running_sensor_bounds[s].max = 0;

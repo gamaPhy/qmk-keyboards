@@ -14,7 +14,11 @@
 #define DEL 127
 #define ESC 27
 
-// Bar that shows setpoints graphically
+// Denotes which sliding-bar setting is currently selected to be changed
+#define SELECT_PREFIX " --> ";
+#define SELECT_SUFFIX " <-- ";
+
+// "Sliding-bar" that shows setpoints graphically
 // Example:
 // <@@@@@@@@@@__________>
 #define SETTING_BAR_LEFT '<'
@@ -45,6 +49,10 @@ enum Menu {
 
 kb_config_t kb_config;
 kb_config_t stored_kb_config;
+
+two_digit_setting_bar actuation_setting_bar;
+two_digit_setting_bar press_setting_bar;
+two_digit_setting_bar release_setting_bar;
 
 void send_string_serial(char *str) {
   int i;
@@ -166,8 +174,8 @@ void create_3_digit_setting_bar(char *setting_bar, int setpoint) {
   strcat(setting_bar, setting_fill);
 }
 
-void print_actuation_menu(enum Menu state, char *actuation_setting_bar,
-                          char *press_setting_bar, char *release_setting_bar) {
+void print_actuation_menu(enum Menu state) {
+
   char *per_key_settings;
   char *rapid_trigger_setting;
   char *actuation_prefix = " a = ";
@@ -183,18 +191,15 @@ void print_actuation_menu(enum Menu state, char *actuation_setting_bar,
     changes = "";
   }
 
-  char *select_prefix = " --> ";
-  char *select_suffix = " <--";
-
   if (state == SET_ACTUATION) {
-    actuation_prefix = select_prefix;
-    actuation_suffix = select_suffix;
+    actuation_prefix = SELECT_PREFIX;
+    actuation_suffix = SELECT_SUFFIX;
   } else if (state == SET_PRESS_SENSITIVITY) {
-    press_prefix = select_prefix;
-    press_suffix = select_suffix;
+    press_prefix = SELECT_PREFIX;
+    press_suffix = SELECT_SUFFIX;
   } else if (state == SET_RELEASE_SENSITIVITY) {
-    release_prefix = select_prefix;
-    release_suffix = select_suffix;
+    release_prefix = SELECT_PREFIX;
+    release_suffix = SELECT_SUFFIX;
   }
 
   if (kb_config.use_per_key_settings) {
@@ -334,28 +339,8 @@ void display_menu(enum Menu state) {
   } else if (state == ACTUATION_PER_KEY || state == SET_ACTUATION ||
              state == SET_PRESS_SENSITIVITY ||
              state == SET_RELEASE_SENSITIVITY) {
-    char actuation_setting_bar[SETTING_BAR_SIZE + 2];
-    create_2_digit_setting_bar(
-        actuation_setting_bar,
-        kb_config.global_actuation_settings.actuation_point_dmm);
 
-    char press_setting_bar[SETTING_BAR_SIZE + 2];
-    create_2_digit_setting_bar(press_setting_bar,
-                               kb_config.global_actuation_settings
-                                   .rapid_trigger_press_sensitivity_dmm);
-
-    char release_setting_bar[SETTING_BAR_SIZE + 2];
-    create_2_digit_setting_bar(release_setting_bar,
-                               kb_config.global_actuation_settings
-                                   .rapid_trigger_release_sensitivity_dmm);
-
-    print_actuation_menu(state, actuation_setting_bar, press_setting_bar,
-                         release_setting_bar);
-
-    if (state == SET_ACTUATION) {
-    } else if (state == SET_PRESS_SENSITIVITY) {
-    } else if (state == SET_RELEASE_SENSITIVITY) {
-    }
+    print_actuation_menu(state);
 
   } else if (state == LIGHTING || state == SET_BRIGHTNESS ||
              state == SET_EFFECT || state == SET_SPEED || state == SET_COLOR) {
@@ -376,6 +361,7 @@ void display_menu(enum Menu state) {
 
 void handle_menu(const uint16_t ch) {
   static enum Menu state = MAIN;
+  // static bool visited_global_actuation_menu = false;
 
   switch (state) {
   case MAIN:
@@ -425,18 +411,30 @@ void handle_menu(const uint16_t ch) {
       kb_config.global_actuation_settings.actuation_point_dmm =
           clamp_setpoint_dmm(
               kb_config.global_actuation_settings.actuation_point_dmm + 1);
+      create_2_digit_setting_bar(
+          actuation_setting_bar,
+          kb_config.global_actuation_settings.actuation_point_dmm);
     } else if (ch == 'd') {
       kb_config.global_actuation_settings.actuation_point_dmm =
           clamp_setpoint_dmm(
               kb_config.global_actuation_settings.actuation_point_dmm - 1);
+      create_2_digit_setting_bar(
+          actuation_setting_bar,
+          kb_config.global_actuation_settings.actuation_point_dmm);
     } else if (ch == 'I') {
       kb_config.global_actuation_settings.actuation_point_dmm =
           clamp_setpoint_dmm(
               kb_config.global_actuation_settings.actuation_point_dmm + 5);
+      create_2_digit_setting_bar(
+          actuation_setting_bar,
+          kb_config.global_actuation_settings.actuation_point_dmm);
     } else if (ch == 'D') {
       kb_config.global_actuation_settings.actuation_point_dmm =
           clamp_setpoint_dmm(
               kb_config.global_actuation_settings.actuation_point_dmm - 5);
+      create_2_digit_setting_bar(
+          actuation_setting_bar,
+          kb_config.global_actuation_settings.actuation_point_dmm);
     }
     break;
   case SET_PRESS_SENSITIVITY:
@@ -458,21 +456,33 @@ void handle_menu(const uint16_t ch) {
           clamp_setpoint_dmm(kb_config.global_actuation_settings
                                  .rapid_trigger_press_sensitivity_dmm +
                              1);
+      create_2_digit_setting_bar(press_setting_bar,
+                                 kb_config.global_actuation_settings
+                                     .rapid_trigger_press_sensitivity_dmm);
     } else if (ch == 'd') {
       kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm =
           clamp_setpoint_dmm(kb_config.global_actuation_settings
                                  .rapid_trigger_press_sensitivity_dmm -
                              1);
+      create_2_digit_setting_bar(press_setting_bar,
+                                 kb_config.global_actuation_settings
+                                     .rapid_trigger_press_sensitivity_dmm);
     } else if (ch == 'I') {
       kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm =
           clamp_setpoint_dmm(kb_config.global_actuation_settings
                                  .rapid_trigger_press_sensitivity_dmm +
                              5);
+      create_2_digit_setting_bar(press_setting_bar,
+                                 kb_config.global_actuation_settings
+                                     .rapid_trigger_press_sensitivity_dmm);
     } else if (ch == 'D') {
       kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm =
           clamp_setpoint_dmm(kb_config.global_actuation_settings
                                  .rapid_trigger_press_sensitivity_dmm -
                              5);
+      create_2_digit_setting_bar(press_setting_bar,
+                                 kb_config.global_actuation_settings
+                                     .rapid_trigger_press_sensitivity_dmm);
     }
     break;
   case SET_RELEASE_SENSITIVITY:
@@ -495,24 +505,36 @@ void handle_menu(const uint16_t ch) {
           clamp_setpoint_dmm(kb_config.global_actuation_settings
                                  .rapid_trigger_release_sensitivity_dmm +
                              1);
+      create_2_digit_setting_bar(release_setting_bar,
+                                 kb_config.global_actuation_settings
+                                     .rapid_trigger_release_sensitivity_dmm);
     } else if (ch == 'd') {
       kb_config.global_actuation_settings
           .rapid_trigger_release_sensitivity_dmm =
           clamp_setpoint_dmm(kb_config.global_actuation_settings
                                  .rapid_trigger_release_sensitivity_dmm -
                              1);
+      create_2_digit_setting_bar(release_setting_bar,
+                                 kb_config.global_actuation_settings
+                                     .rapid_trigger_release_sensitivity_dmm);
     } else if (ch == 'I') {
       kb_config.global_actuation_settings
           .rapid_trigger_release_sensitivity_dmm =
           clamp_setpoint_dmm(kb_config.global_actuation_settings
                                  .rapid_trigger_release_sensitivity_dmm +
                              5);
+      create_2_digit_setting_bar(release_setting_bar,
+                                 kb_config.global_actuation_settings
+                                     .rapid_trigger_release_sensitivity_dmm);
     } else if (ch == 'D') {
       kb_config.global_actuation_settings
           .rapid_trigger_release_sensitivity_dmm =
           clamp_setpoint_dmm(kb_config.global_actuation_settings
                                  .rapid_trigger_release_sensitivity_dmm -
                              5);
+      create_2_digit_setting_bar(release_setting_bar,
+                                 kb_config.global_actuation_settings
+                                     .rapid_trigger_release_sensitivity_dmm);
     }
     break;
   case LIGHTING:
@@ -572,4 +594,18 @@ void handle_menu(const uint16_t ch) {
 void virtser_recv(const uint8_t ch) {
   dprintf("virtser_recv: ch: %3u \n", ch);
   handle_menu(ch);
+}
+
+void serial_configurator_init_setting_bars(void) {
+  create_2_digit_setting_bar(
+      actuation_setting_bar,
+      kb_config.global_actuation_settings.actuation_point_dmm);
+
+  create_2_digit_setting_bar(
+      press_setting_bar,
+      kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm);
+
+  create_2_digit_setting_bar(release_setting_bar,
+                             kb_config.global_actuation_settings
+                                 .rapid_trigger_release_sensitivity_dmm);
 }
