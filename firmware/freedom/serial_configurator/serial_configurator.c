@@ -29,8 +29,9 @@
 // leading whitespace + number of divisions + 2 encapsulation chars
 #define SETTING_BAR_SIZE 1 + SETTING_BAR_DIVISIONS + 2
 
-typedef char two_digit_setting_bar[SETTING_BAR_SIZE + 2];
-typedef char three_digit_setting_bar[SETTING_BAR_SIZE + 3];
+// digits + null termination
+typedef char two_digit_setting_bar[SETTING_BAR_SIZE + 3];
+typedef char three_digit_setting_bar[SETTING_BAR_SIZE + 4];
 
 enum Menu {
   MAIN,
@@ -51,8 +52,8 @@ kb_config_t kb_config;
 kb_config_t stored_kb_config;
 
 two_digit_setting_bar actuation_setting_bar;
-two_digit_setting_bar press_setting_bar;
 two_digit_setting_bar release_setting_bar;
+two_digit_setting_bar press_setting_bar;
 
 void send_string_serial(char *str) {
   int i;
@@ -114,8 +115,8 @@ void print_main_menu(void) {
 // 40 <@@@@@@@@@@@@@@@@@@@>
 //  1 <@__________________>
 //
-// `setting_bar` must have a size of SETTING_BAR_SIZE + 2 to fit the potentially
-// 2 digit number
+// `setting_bar` must have a size of SETTING_BAR_SIZE + 3 to fit the potentially
+// 2 digit number and null termination
 void create_2_digit_setting_bar(char *setting_bar, int setpoint) {
   // Maximum actuation distance is a 2 digit integer pad with leading spaces if
   // there is a 1 digit integer to align setting bar
@@ -147,8 +148,8 @@ void create_2_digit_setting_bar(char *setting_bar, int setpoint) {
 // 255 <@@@@@@@@@@@@@@@@@@@>
 //   1 <@__________________>
 //
-// `setting_bar` must have a size of SETTING_BAR_SIZE + 3 to fit the potentially
-// 3 digit number
+// `setting_bar` must have a size of SETTING_BAR_SIZE + 4 to fit the potentially
+// 3 digit number and null termination
 void create_3_digit_setting_bar(char *setting_bar, int setpoint) {
   // Maximum value for some settings is a 3 digit number pad with leading spaces
   // if there is a 1 or 2 digit integer to align setting bar
@@ -587,6 +588,8 @@ void handle_menu(const uint16_t ch) {
     kb_config_save_to_eeprom();
   } else if (ch == 'c' || ch == 'C') {
     kb_config_reload_from_eeprom();
+    // TODO: only init the setting bars that have changed
+    serial_configurator_init_setting_bars();
   }
   display_menu(state);
 }
