@@ -19,3 +19,4 @@ SRC += helpers/sensor_read.c
 SRC += helpers/lookup_table.c
 SRC += helpers/kb_config.c
 SRC += serial_configurator/serial_configurator.c
+SRC += serial_configurator/serial_configurator_helpers/setting_bar.c
