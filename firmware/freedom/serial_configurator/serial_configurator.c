@@ -20,7 +20,7 @@ enum Menu {
   SET_ACTUATION,
   SET_PRESS_SENSITIVITY,
   SET_RELEASE_SENSITIVITY,
-  ACTUATION_PER_KEY,
+  PER_KEY_ACTUATION,
   KEYMAP,
   LIGHTING,
   SET_EFFECT,
@@ -36,6 +36,18 @@ kb_config_t stored_kb_config;
 two_digit_setting_bar actuation_setting_bar;
 two_digit_setting_bar release_setting_bar;
 two_digit_setting_bar press_setting_bar;
+
+bool receiving_cursor_location = false;
+
+typedef struct {
+  char row[2];
+  char col[2];
+} cursor_position_t;
+
+cursor_position_t saved_cursor_positions[2];
+
+int saved_cusor_line[2];
+int saved_cusor_column[2];
 
 void send_string_serial(char *str) {
   int i;
@@ -56,6 +68,13 @@ void cursor_left(void) { send_string_serial("\033[1D"); }
 void clear_terminal(void) { send_string_serial("\033[2J"); }
 
 void cursor_home(void) { send_string_serial("\033[H"); }
+
+void hide_cursor(void) { send_string_serial("\033[?25h"); }
+
+void request_cursor_location(void) {
+  receiving_cursor_location = true;
+  send_string_serial("\033[6n");
+}
 
 void reset_terminal(void) {
   clear_terminal();
@@ -85,7 +104,7 @@ void print_main_menu(void) {
                           NL,
                           NL,
                           NULL};
-
+  cursor_home();
   print_strings_serial(menu_strings);
   cursor_right();
 }
@@ -97,14 +116,14 @@ void print_actuation_menu(enum Menu state) {
   char *actuation_prefix = " a = ";
   char *press_prefix = " e = ";
   char *release_prefix = " l = ";
-  char *actuation_suffix = "";
-  char *press_suffix = "";
-  char *release_suffix = "";
+  char *actuation_suffix = EMPTY_SUFFIX;
+  char *press_suffix = EMPTY_SUFFIX;
+  char *release_suffix = EMPTY_SUFFIX;
   char *changes = "+";
 
   if (kb_config.global_actuation_settings.actuation_point_dmm ==
       stored_kb_config.global_actuation_settings.actuation_point_dmm) {
-    changes = "";
+    changes = " ";
   }
 
   if (state == SET_ACTUATION) {
@@ -119,7 +138,7 @@ void print_actuation_menu(enum Menu state) {
   }
 
   if (kb_config.use_per_key_settings) {
-    per_key_settings = " <ON>";
+    per_key_settings = " <ON> ";
     char *menu_strings[] = {NL,
                             " MAIN MENU -> ACTUATION SETTINGS",
                             NL,
@@ -145,7 +164,7 @@ void print_actuation_menu(enum Menu state) {
   } else {
     rapid_trigger_setting = "    <OFF>";
     if (kb_config.global_actuation_settings.rapid_trigger) {
-      rapid_trigger_setting = "    <ON>";
+      rapid_trigger_setting = "    <ON> ";
     }
     per_key_settings = " <OFF>";
     char *menu_strings_1[] = {NL,
@@ -193,6 +212,7 @@ void print_actuation_menu(enum Menu state) {
                               NULL};
     // Whitespace offset to align with per-key settings
     if (kb_config.global_actuation_settings.rapid_trigger) {
+      cursor_home();
       print_strings_serial(menu_strings_1);
       char *rapid_trigger_extra_actuation_settings[] = {press_prefix,
                                                         "Press Sensitivity    ",
@@ -211,6 +231,7 @@ void print_actuation_menu(enum Menu state) {
       print_strings_serial(rapid_trigger_extra_actuation_settings);
       print_strings_serial(menu_strings_2);
     } else {
+      cursor_home();
       print_strings_serial(menu_strings_1);
       cursor_down();
       print_strings_serial(menu_strings_2);
@@ -248,11 +269,9 @@ void print_lighting_menu(char *brightness_setting_bar,
 }
 
 void display_menu(enum Menu state) {
-  reset_terminal();
-
   if (state == MAIN) {
     print_main_menu();
-  } else if (state == ACTUATION_PER_KEY || state == SET_ACTUATION ||
+  } else if (state == PER_KEY_ACTUATION || state == SET_ACTUATION ||
              state == SET_PRESS_SENSITIVITY ||
              state == SET_RELEASE_SENSITIVITY) {
 
@@ -277,13 +296,13 @@ void display_menu(enum Menu state) {
 
 void handle_menu(const uint16_t ch) {
   static enum Menu state = MAIN;
-  // static bool visited_global_actuation_menu = false;
+  static enum Menu previous_state = MAIN;
 
   switch (state) {
   case MAIN:
     if (ch == 'a' || ch == 'A') {
       if (kb_config.use_per_key_settings) {
-        state = ACTUATION_PER_KEY;
+        state = PER_KEY_ACTUATION;
       } else {
         state = SET_ACTUATION;
       }
@@ -291,7 +310,7 @@ void handle_menu(const uint16_t ch) {
       state = LIGHTING;
     }
     break;
-  case ACTUATION_PER_KEY:
+  case PER_KEY_ACTUATION:
     if (ch == 'b' || ch == 'B') {
       state = MAIN;
     } else if (ch == 'p' || ch == 'P') {
@@ -301,7 +320,6 @@ void handle_menu(const uint16_t ch) {
       kb_config_save_to_eeprom();
     }
     break;
-  // 'OR' logic equivalent for switch statements
   case SET_ACTUATION:
     if (ch == 'b' || ch == 'B') {
       state = MAIN;
@@ -506,12 +524,18 @@ void handle_menu(const uint16_t ch) {
     // TODO: only init the setting bars that have changed
     serial_configurator_init_setting_bars();
   }
+
+  if (previous_state != state) {
+    clear_terminal();
+    previous_state = state;
+  }
+
   display_menu(state);
 }
 
 void virtser_recv(const uint8_t ch) {
-  dprintf("virtser_recv: ch: %3u \n", ch);
   handle_menu(ch);
+  dprintf("virtser_recv: ch: %3u \n", ch);
 }
 
 void serial_configurator_init_setting_bars(void) {

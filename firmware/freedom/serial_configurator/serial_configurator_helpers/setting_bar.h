@@ -2,7 +2,8 @@
 
 // Denotes which sliding-bar setting is currently selected to be changed
 #define SELECT_PREFIX " --> ";
-#define SELECT_SUFFIX " <-- ";
+#define SELECT_SUFFIX " <--";
+#define EMPTY_SUFFIX "    ";
 
 // "Sliding-bar" that shows setpoints graphically
 // Example:
