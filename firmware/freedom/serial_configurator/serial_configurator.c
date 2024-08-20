@@ -296,7 +296,6 @@ void display_menu(enum Menu state) {
 
 void handle_menu(const uint16_t ch) {
   static enum Menu state = MAIN;
-  static enum Menu previous_state = MAIN;
 
   switch (state) {
   case MAIN:
@@ -525,15 +524,15 @@ void handle_menu(const uint16_t ch) {
     serial_configurator_init_setting_bars();
   }
 
-  if (previous_state != state) {
-    clear_terminal();
-    previous_state = state;
-  }
+  clear_terminal();
 
   display_menu(state);
 }
 
 void virtser_recv(const uint8_t ch) {
+  if (ch == '-') {
+    bootloader_jump();
+  }
   handle_menu(ch);
   dprintf("virtser_recv: ch: %3u \n", ch);
 }
