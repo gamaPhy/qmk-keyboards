@@ -6,7 +6,6 @@
 #include "../helpers/kb_config.h"
 
 #include "../config.h"
-#include "ascii_art.h"
 #include "serial_configurator.h"
 #include "serial_configurator_helpers/setting_bar.h"
 
@@ -36,6 +35,8 @@ kb_config_t stored_kb_config;
 two_digit_setting_bar actuation_setting_bar;
 two_digit_setting_bar release_setting_bar;
 two_digit_setting_bar press_setting_bar;
+three_digit_setting_bar speed_setting_bar;
+three_digit_setting_bar brightness_setting_bar;
 
 bool receiving_cursor_location = false;
 
@@ -269,32 +270,35 @@ void print_lighting_menu(char *brightness_setting_bar,
 }
 
 void display_menu(enum Menu state) {
-  if (state == MAIN) {
+  switch (state) {
+  case MAIN:
     print_main_menu();
-  } else if (state == PER_KEY_ACTUATION || state == SET_ACTUATION ||
-             state == SET_PRESS_SENSITIVITY ||
-             state == SET_RELEASE_SENSITIVITY) {
-
+    break;
+  case PER_KEY_ACTUATION:
+  case SET_ACTUATION:
+  case SET_PRESS_SENSITIVITY:
+  case SET_RELEASE_SENSITIVITY:
     print_actuation_menu(state);
-
-  } else if (state == LIGHTING || state == SET_BRIGHTNESS ||
-             state == SET_EFFECT || state == SET_SPEED || state == SET_COLOR) {
-    char speed_setting_bar[SETTING_BAR_SIZE + 3];
+    break;
+  case LIGHTING:
+  case SET_EFFECT:
+  case SET_SPEED:
+  case SET_BRIGHTNESS:
+  case SET_COLOR:
     create_3_digit_setting_bar(speed_setting_bar, rgb_matrix_get_speed());
 
-    char brightness_setting_bar[SETTING_BAR_SIZE + 3];
     create_3_digit_setting_bar(brightness_setting_bar, rgb_matrix_get_val());
 
     print_lighting_menu(brightness_setting_bar, speed_setting_bar);
-  } else if (state == KEYMAP) {
-  } else if (state == RESTORE_DEFAULT) {
-    // Do nothing (no operation for RESTORE_DEFAULT)
-  } else {
-    // Do nothing
+    break;
+  case KEYMAP:
+    break;
+  case RESTORE_DEFAULT:
+    break;
   }
 }
 
-void handle_menu(const uint16_t ch) {
+void handle_menu(const uint8_t ch) {
   static enum Menu state = MAIN;
 
   switch (state) {
