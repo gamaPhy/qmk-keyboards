@@ -196,7 +196,6 @@ void print_standard_actuation_menu(void) {
 }
 
 void print_rapid_trigger_actuation_menu(enum Menu state) {
-
   char *actuation_prefix = " a = ";
   char *press_prefix = " e = ";
   char *release_prefix = " l = ";
@@ -278,8 +277,7 @@ void print_rapid_trigger_actuation_menu(enum Menu state) {
   cursor_right();
 }
 
-void print_lighting_menu(char *brightness_setting_bar,
-                         char *speed_setting_bar) {
+void print_lighting_menu(void) {
   char *menu_strings[] = {NL,
                           " MAIN MENU -> LIGHTING SETTINGS",
                           NL,
@@ -322,7 +320,6 @@ void display_menu(enum Menu state) {
       print_rapid_trigger_actuation_menu(state);
       return;
     }
-
     print_standard_actuation_menu();
     return;
   case LIGHTING:
@@ -330,11 +327,7 @@ void display_menu(enum Menu state) {
   case SET_SPEED:
   case SET_BRIGHTNESS:
   case SET_COLOR:
-    create_3_digit_setting_bar(speed_setting_bar, rgb_matrix_get_speed());
-
-    create_3_digit_setting_bar(brightness_setting_bar, rgb_matrix_get_val());
-
-    print_lighting_menu(brightness_setting_bar, speed_setting_bar);
+    print_lighting_menu();
     break;
   case KEYMAP:
     break;
@@ -584,4 +577,6 @@ void serial_configurator_init_setting_bars(void) {
   create_2_digit_setting_bar(release_setting_bar,
                              kb_config.global_actuation_settings
                                  .rapid_trigger_release_sensitivity_dmm);
+
+  create_3_digit_setting_bar(speed_setting_bar, rgb_matrix_get_speed());
 }

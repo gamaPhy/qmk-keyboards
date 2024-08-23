@@ -119,7 +119,6 @@ void keyboard_post_init_user(void) {
   rgb_matrix_sethsv_noeeprom(HSV_BLACK);
   debug_enable = true;
   kb_config_reload_from_eeprom();
-  serial_configurator_init_setting_bars();
   for (int s = 0; s < SENSOR_COUNT; s++) {
     running_sensor_bounds[s].min = -1;
     running_sensor_bounds[s].max = 0;
@@ -221,6 +220,9 @@ void matrix_scan_kb(void) {
         bootup_calibrated = true;
         create_lookup_table(&kb_config, sensor_lookup_table);
         rgb_matrix_reload_from_eeprom();
+        // Setting bars have to be initialized after all values are loaded into
+        // running memory from eeprom
+        serial_configurator_init_setting_bars();
       }
     } else {
       dprintf("Current raw reading range within last second:\n");
