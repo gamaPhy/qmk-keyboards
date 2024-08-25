@@ -254,9 +254,7 @@ void matrix_scan_kb(void) {
       for (int col = 0; col < MATRIX_COLS; col++) {
         if (pin_scan_modes[row][col] == ANALOG) {
           pin_t pin = direct_pins[row][col];
-          // remove some LSBs from from the adc raw reading
-          uint16_t sensor_value =
-              oversample(pin) >> (ADC_RESOLUTION - ADC_ENOB);
+          uint16_t sensor_value = oversample(pin);
           sensor_bounds_t *bounds = &kb_config.matrix_sensor_bounds[row][col];
           if (sensor_value < bounds->min) {
             bounds->min = sensor_value;

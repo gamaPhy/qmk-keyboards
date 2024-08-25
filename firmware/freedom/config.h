@@ -33,13 +33,7 @@
 #define LOOKUP_TABLE_MULTIPLIER 2
 
 #define ADC_RESOLUTION 12
-// Effective number of bits (ENOB) of ADC rounded up to the nearest integer.
-#define ADC_ENOB 9
-// Defining the maximum ADC reading based on ENOB instead of ADC resolution
-// allows for less memory needed to store the lookup table, while preserving all
-// useful information
-#define MAX_ADC_READING (1 << ADC_ENOB) - 1
-
+#define MAX_ADC_READING (1 << ADC_RESOLUTION) - 1
 // the minimum range that sensor bounds should be after calibration
 #define MIN_SENSOR_BOUND_RANGE 300
 
