@@ -552,6 +552,7 @@ void handle_menu(const uint8_t ch) {
     serial_configurator_init_setting_bars();
   }
 
+  // TODO: only reset_terminal when needed
   reset_terminal();
 
   display_menu(state);
