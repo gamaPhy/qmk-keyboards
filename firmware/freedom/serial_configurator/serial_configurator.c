@@ -1,3 +1,6 @@
+// TODO: add new reset on main menu for actuation, lighting, and keymap
+// separately or all together
+
 #include <stdio.h>
 
 #include "quantum.h"
@@ -48,6 +51,8 @@ two_digit_setting_bar release_setting_bar;
 two_digit_setting_bar press_setting_bar;
 three_digit_setting_bar speed_setting_bar;
 three_digit_setting_bar brightness_setting_bar;
+three_digit_setting_bar hue_setting_bar;
+three_digit_setting_bar saturation_setting_bar;
 
 bool receiving_cursor_location = false;
 
@@ -285,7 +290,12 @@ void print_lighting_menu(void) {
                           " e = Effect",
                           NL,
                           NL,
-                          " c = Color",
+                          " h = Hue         ",
+                          hue_setting_bar,
+                          NL,
+                          NL,
+                          " a = Saturation  ",
+                          saturation_setting_bar,
                           NL,
                           NL,
                           " r = Brightness  ",
@@ -294,6 +304,12 @@ void print_lighting_menu(void) {
                           NL,
                           " p = Speed       ",
                           speed_setting_bar,
+                          NL,
+                          NL,
+                          " c = Clear Changes",
+                          NL,
+                          NL,
+                          " s = Save Settings",
                           NL,
                           NL,
                           " b = Back <-",
@@ -580,4 +596,7 @@ void serial_configurator_init_setting_bars(void) {
                                  .rapid_trigger_release_sensitivity_dmm);
 
   create_3_digit_setting_bar(speed_setting_bar, rgb_matrix_get_speed());
+  create_3_digit_setting_bar(hue_setting_bar, rgb_matrix_get_hue());
+  create_3_digit_setting_bar(saturation_setting_bar, rgb_matrix_get_sat());
+  create_3_digit_setting_bar(brightness_setting_bar, rgb_matrix_get_val());
 }
