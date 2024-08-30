@@ -10,6 +10,7 @@
 
 #include "../config.h"
 #include "serial_configurator.h"
+#include "serial_configurator_helpers/lighting_effect.h"
 #include "serial_configurator_helpers/setting_bar.h"
 
 #define NL "\n\r"
@@ -283,11 +284,15 @@ void print_rapid_trigger_actuation_menu(enum Menu state) {
 }
 
 void print_lighting_menu(void) {
+  char *effect_string = lighting_mode_string();
   char *menu_strings[] = {NL,
                           " MAIN MENU -> LIGHTING SETTINGS",
                           NL,
                           NL,
                           " e = Effect",
+                          "   < ",
+                          effect_string,
+                          " > ",
                           NL,
                           NL,
                           " h = Hue         ",
