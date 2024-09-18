@@ -1,5 +1,6 @@
 // TODO: add new reset on main menu for actuation, lighting, and keymap
 // separately or all together
+// TODO: notify when the keeb is not calibrated
 
 #include <stdio.h>
 
