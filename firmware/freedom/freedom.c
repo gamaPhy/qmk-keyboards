@@ -5,8 +5,11 @@
 #include <math.h>
 
 #include "freedom.h"
+
+#include "helpers/kb_config.h"
 #include "helpers/lookup_table.h"
 #include "helpers/sensor_read.h"
+#include "serial_configurator/serial_configurator.h"
 
 #ifdef RGB_MATRIX_ENABLE
 led_config_t g_led_config = {{
@@ -63,8 +66,6 @@ const pin_scan_mode_t pin_scan_modes[MATRIX_ROWS][MATRIX_COLS] = PIN_SCAN_MODES;
 const int sensor_nums[MATRIX_ROWS][MATRIX_COLS] = SENSOR_NUMS;
 
 bool bootup_calibrated = false;
-uint8_t startup_count = 0;
-
 bool calibrating_sensors = false;
 
 // Our bootmagic implementation allows optionally clearing EEPROM depending on
@@ -86,36 +87,9 @@ void bootmagic_lite(void) {
   }
 }
 
-void kb_config_save(void) { eeconfig_update_kb_datablock(&kb_config); }
-
 void eeconfig_init_kb(void) {
-  kb_config.calibrated = false;
-  kb_config.use_per_key_settings = false;
-  kb_config.global_actuation_settings.rapid_trigger = true;
-  kb_config.global_actuation_settings.actuation_point_dmm = 6;
-  kb_config.global_actuation_settings.rapid_trigger_press_sensitivity_dmm = 2;
-  kb_config.global_actuation_settings.rapid_trigger_release_sensitivity_dmm = 4;
-  for (int i = 0; i < SENSOR_COUNT; i++) {
-    kb_config.per_key_actuation_settings[i].rapid_trigger = true;
-    kb_config.per_key_actuation_settings[i].actuation_point_dmm = 6;
-    kb_config.per_key_actuation_settings[i]
-        .rapid_trigger_press_sensitivity_dmm = 2;
-    kb_config.per_key_actuation_settings[i]
-        .rapid_trigger_release_sensitivity_dmm = 4;
-  }
-  for (int row = 0; row < MATRIX_ROWS; row++) {
-    for (int col = 0; col < MATRIX_COLS; col++) {
-      if (pin_scan_modes[row][col] == ANALOG) {
-        kb_config.matrix_sensor_bounds[row][col].min = -1;
-        kb_config.matrix_sensor_bounds[row][col].max = 0;
-        kb_config.matrix_scaling_params[row][col].a = 0;
-        kb_config.matrix_scaling_params[row][col].b = 0;
-        kb_config.matrix_scaling_params[row][col].b_fractional_component = 0;
-        kb_config.matrix_scaling_params[row][col].base_value = 0;
-      }
-    }
-  }
-  kb_config_save();
+  kb_config_factory_reset();
+  kb_config_save_to_eeprom();
 }
 
 bool calibration_successful(void) {
@@ -140,10 +114,11 @@ void keyboard_pre_init_user(void) {
 }
 
 void keyboard_post_init_user(void) {
+  // Have to turn on the rgb again after s min values have been calibrated.
+  // This is done later during the matrix scan phase upon bootup with
   rgb_matrix_sethsv_noeeprom(HSV_BLACK);
   debug_enable = true;
-  // have to turn on the rgb again after s min values have been calibrated
-  eeconfig_read_kb_datablock(&kb_config);
+  kb_config_reload_from_eeprom();
   for (int s = 0; s < SENSOR_COUNT; s++) {
     running_sensor_bounds[s].min = -1;
     running_sensor_bounds[s].max = 0;
@@ -183,12 +158,12 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
         rgb_matrix_reload_from_eeprom();
         kb_config.calibrated = true;
         create_lookup_table(&kb_config, sensor_lookup_table);
-        kb_config_save();
+        kb_config_save_to_eeprom();
       } else {
         if (kb_config.calibrated) {
           // return to state before calibration started
           rgb_matrix_reload_from_eeprom();
-          eeconfig_read_kb_datablock(&kb_config);
+          kb_config_reload_from_eeprom();
         }
       }
       writePinLow(PICO_LED);
@@ -198,19 +173,19 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
       kb_config.global_actuation_settings.rapid_trigger =
           !kb_config.global_actuation_settings.rapid_trigger;
-      kb_config_save();
+      kb_config_save_to_eeprom();
     }
     return false;
   case KC_ACTUATION_DEC:
     if (kb_config.global_actuation_settings.actuation_point_dmm > 1) {
       --kb_config.global_actuation_settings.actuation_point_dmm;
-      kb_config_save();
+      kb_config_save_to_eeprom();
     }
     return false;
   case KC_ACTUATION_INC:
     if (kb_config.global_actuation_settings.actuation_point_dmm < 40) {
       ++kb_config.global_actuation_settings.actuation_point_dmm;
-      kb_config_save();
+      kb_config_save_to_eeprom();
     }
     return false;
   }
@@ -220,11 +195,12 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
 void matrix_scan_kb(void) {
   static uint16_t key_timer;
+  static uint8_t startup_count = 0;
   if (timer_elapsed(key_timer) > 1000) {
     key_timer = timer_read();
 
     dprintf("\nTemperature: %i\n", adc_read(TO_MUX(4, 0)));
-    dprintf("\nCalibrated range:\n(%i, %i) (%i, %i) (%i, %i)\n\n",
+    dprintf("\nRaw calibrated range:\n(%i, %i) (%i, %i) (%i, %i)\n\n",
             kb_config.matrix_sensor_bounds[0][0].min,
             kb_config.matrix_sensor_bounds[0][0].max,
             kb_config.matrix_sensor_bounds[0][1].min,
@@ -244,9 +220,12 @@ void matrix_scan_kb(void) {
         bootup_calibrated = true;
         create_lookup_table(&kb_config, sensor_lookup_table);
         rgb_matrix_reload_from_eeprom();
+        // Setting bars have to be initialized after all values are loaded into
+        // running memory from eeprom
+        serial_configurator_init_setting_bars();
       }
     } else {
-      dprintf("Current reading range within 1 second:\n");
+      dprintf("Current raw reading range within last second:\n");
       for (int s = 0; s < SENSOR_COUNT; s++) {
         dprintf("(%i,%i) ", running_sensor_bounds[s].min,
                 running_sensor_bounds[s].max);
@@ -267,8 +246,7 @@ void matrix_scan_kb(void) {
       }
     }
 
-    dprintf("################################################################");
-    dprintf("\n\n");
+    dprintf("#######################################\n\n");
   }
 
   if (calibrating_sensors) {
@@ -461,7 +439,7 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
       kb_config_get_value(value_id_and_data);
       break;
     case id_custom_save:
-      kb_config_save();
+      kb_config_save_to_eeprom();
       break;
     default:
       // Unhandled message.
